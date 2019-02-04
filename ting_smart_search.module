@@ -96,6 +96,7 @@ function ting_smart_search_opensearch_pre_execute($request) {
 
         // store the userDefinedBoost if any
         $smart_search_userdefined_boosts = $request->userDefinedBoost;
+        $smart_search_check_boosts = false;
         //file_put_contents("/var/www/drupal7vm/drupal/debug/udb.txt", print_r($smart_search_userdefined_boosts , TRUE), FILE_APPEND);
         if (substr( $request->getQuery(), 0, 1 ) === "(") {
           //$smart_search_check_replaced = ting_smart_search_check_replaced($request->getQuery());
@@ -176,12 +177,42 @@ function ting_smart_search_opensearch_pre_execute($request) {
             }
           }
         }
+
+        if (!$smart_search_check_boosts) {
+          $request->userDefinedBoost = ting_smart_search_auto($smart_search_userdefined_boosts, $request->fullTextQuery);
+        }
         break;
     }
 
   //file_put_contents("/var/www/drupal7vm/drupal/debug/query.txt", print_r($request , TRUE), FILE_APPEND);
   //return array('includeMarcXchange' => TRUE);
   return NULL;
+}
+
+function ting_smart_search_auto($smart_search_userdefined_boosts, $keys) {
+  $startTime = explode(' ', microtime());
+  $data = json_decode(file_get_contents('/var/www/work/autodata.txt'), true);
+
+  if (array_key_exists($keys, $data)) {
+    $i = 0;
+    $weight = 10000;
+    foreach ($data[$keys] as $faust => $objects) {
+      $smart_search_userdefined_boosts[] = array(
+          'fieldName' => 'term.default',
+          'fieldValue' => urldecode($faust),
+          'weight' => $weight,
+      );
+      $weight = $weight - 1000;
+      $i += 1;
+      if ($i > 4) {
+        break;
+      }
+    }
+  }
+  $stopTime = explode(' ', microtime());
+  $time = floatval(($stopTime[1] + $stopTime[0]) - ($startTime[1] + $startTime[0]));
+  var_dump($time);
+  return $smart_search_userdefined_boosts;
 }
 
 function ting_smart_search_opensearch_post_execute($request, $response, $raw_response) {
