@@ -96,7 +96,7 @@ function ting_smart_search_opensearch_pre_execute($request) {
 
         // store the userDefinedBoost if any
         $smart_search_userdefined_boosts = $request->userDefinedBoost;
-        $smart_search_check_boosts = false;
+        $smart_search_check_object_boosts = false;
         //file_put_contents("/var/www/drupal7vm/drupal/debug/udb.txt", print_r($smart_search_userdefined_boosts , TRUE), FILE_APPEND);
         if (substr( $request->getQuery(), 0, 1 ) === "(") {
           //$smart_search_check_replaced = ting_smart_search_check_replaced($request->getQuery());
@@ -151,7 +151,7 @@ function ting_smart_search_opensearch_pre_execute($request) {
                 }
 
                 //$smart_search_check_boosts = ting_smart_search_check_boosts($request->getQuery());
-                $smart_search_check_boosts = ting_smart_search_check_boosts($smart_search_object);
+                $smart_search_check_boosts = ting_smart_search_check_boosts($smart_search_object, $smart_search_check_object_boosts);
               }
 
               if ($smart_search_check_replaced == '') {
@@ -178,7 +178,7 @@ function ting_smart_search_opensearch_pre_execute($request) {
           }
         }
 
-        if (!$smart_search_check_boosts) {
+        if (!$smart_search_check_object_boosts) {
           $request->userDefinedBoost = ting_smart_search_auto($smart_search_userdefined_boosts, $request->fullTextQuery);
         }
         break;
@@ -191,7 +191,8 @@ function ting_smart_search_opensearch_pre_execute($request) {
 
 function ting_smart_search_auto($smart_search_userdefined_boosts, $keys) {
   $startTime = explode(' ', microtime());
-  $data = json_decode(file_get_contents('/var/www/work/autodata.txt'), true);
+  $data = json_decode(file_get_contents('/var/www/drupalvm/drupal/work/autodata.txt'), true);
+  //$data = json_decode(file_get_contents('/var/www/work/autodata.txt'), true);
 
   if (array_key_exists($keys, $data)) {
     $i = 0;
@@ -336,7 +337,7 @@ function ting_smart_search_check_sort($query) {
  * @return array
  *   The boost array or empty
  */
-function ting_smart_search_check_boosts($wrapper) {
+function ting_smart_search_check_boosts($wrapper, &$smart_search_check_object_boosts) {
   $boosts = array();
   $boost_materials = array();
   $weight = 20000;
@@ -354,6 +355,7 @@ function ting_smart_search_check_boosts($wrapper) {
     $boost_materials = $wrapper->field_sss_boost_materials->value();
   // We insert material twice to rule out factors applied from the well
     if(!empty($boost_materials)) {
+      $smart_search_check_object_boosts = true;
       foreach($boost_materials as $boost_material) {
         $boosts[] =
             array (
