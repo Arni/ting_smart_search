@@ -191,8 +191,8 @@ function ting_smart_search_opensearch_pre_execute($request) {
 
 function ting_smart_search_auto($smart_search_userdefined_boosts, $keys) {
   $startTime = explode(' ', microtime());
-  $data = json_decode(file_get_contents('/var/www/drupalvm/drupal/work/autodata.txt'), true);
-  //$data = json_decode(file_get_contents('/var/www/work/autodata.txt'), true);
+  //$data = json_decode(file_get_contents('/var/www/drupalvm/drupal/work/autodata.txt'), true);
+  $data = json_decode(file_get_contents('/var/www/work/autodata.txt'), true);
 
   if (array_key_exists($keys, $data)) {
     $i = 0;
