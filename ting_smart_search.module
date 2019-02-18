@@ -191,8 +191,8 @@ function ting_smart_search_opensearch_pre_execute($request) {
 
 function ting_smart_search_auto($smart_search_userdefined_boosts, $keys) {
   $startTime = explode(' ', microtime());
-  //$data = json_decode(file_get_contents('/var/www/drupalvm/drupal/work/autodata.txt'), true);
-  $data = json_decode(file_get_contents('/var/www/work/autodata.txt'), true);
+  $data = ting_smart_search_autodata_cache();
+  //$data = json_decode(file_get_contents('/var/www/work/autodata.txt'), true);
 
   if (array_key_exists($keys, $data)) {
     $i = 0;
@@ -212,8 +212,17 @@ function ting_smart_search_auto($smart_search_userdefined_boosts, $keys) {
   }
   $stopTime = explode(' ', microtime());
   $time = floatval(($stopTime[1] + $stopTime[0]) - ($startTime[1] + $startTime[0]));
+  var_dump('auto smart search');
   var_dump($time);
+  //file_put_contents("/var/www/drupal7vm/drupal/debug/opcache.txt", print_r( opcache_get_status() , TRUE), FILE_APPEND);
+
   return $smart_search_userdefined_boosts;
+}
+
+function ting_smart_search_autodata_cache() {
+    @include '/var/www/work/autodata.txt';
+    //@include '/var/www/drupalvm/drupal/work/autodata.txt';
+    return isset($ting_smart_search_autodata ) ? $ting_smart_search_autodata : false;
 }
 
 function ting_smart_search_opensearch_post_execute($request, $response, $raw_response) {
