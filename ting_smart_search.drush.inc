@@ -6,7 +6,6 @@
 function ting_smart_search_drush_command() {
   $items = array();
   $items['stats-importer'] = array(
-    //'callback' => 'ting_smart_search_stats_importer',  // Callback function
     'description' => 'Drush command to import csv-stats to entity.',
     'aliases' => array('sti'), // alias of command
     'examples' => array(      // List these example when user types : drush help nc
@@ -20,7 +19,6 @@ function ting_smart_search_drush_command() {
     ),
   );
   $items['score-importer'] = array(
-    //'callback' => 'ting_smart_search_stats_importer',  // Callback function
     'description' => 'Drush command to import csv-scores to entity.',
     'aliases' => array('sci'), // alias of command
     'examples' => array(      // List these example when user types : drush help nc
@@ -43,7 +41,7 @@ function ting_smart_search_drush_command() {
  function drush_ting_smart_search_stats_importer() {
 
          $file = drush_get_option('file');
-         //dpm($file);
+
          if (!empty($file) && file_exists($file)) {
                  $csv_data = array_map(function($v){return str_getcsv($v, "\t");}, file($file));
                  // loop through array and skip 0 lines

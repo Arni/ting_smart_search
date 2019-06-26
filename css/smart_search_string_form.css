@@ -61,7 +61,8 @@
     height: 30px;
     padding: 0px 17px;
     margin-bottom: 0em;
-    margin-right: 0em;
+    margin-right: 10px;
+    float: left;
     color: #5a5a5a;
     text-align: center;
     font-weight: normal;
@@ -258,4 +259,8 @@
 
 #edit-field-sss-date .form-type-checkbox label {
   padding-left: 30px;
+}
+
+#edit-field-sss-import-update {
+  display: none;
 }

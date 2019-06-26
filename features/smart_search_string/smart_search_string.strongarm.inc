@@ -95,34 +95,44 @@ function smart_search_string_strongarm() {
       'col2' => array(
         'custom_settings' => TRUE,
       ),
+      'teaser_no_overlay' => array(
+        'custom_settings' => TRUE,
+      ),
+      'link-only' => array(
+        'custom_settings' => TRUE,
+      ),
     ),
     'extra_fields' => array(
       'form' => array(
         'metatags' => array(
-          'weight' => '4',
+          'weight' => '5',
         ),
         'title' => array(
           'weight' => '0',
         ),
         'path' => array(
-          'weight' => '5',
+          'weight' => '6',
         ),
         'redirect' => array(
-          'weight' => '6',
+          'weight' => '7',
         ),
       ),
       'display' => array(
         'ding_serendipity_info' => array(
           'teaser' => array(
-            'weight' => '3',
+            'weight' => '4',
             'visible' => FALSE,
           ),
           'default' => array(
-            'weight' => '2',
+            'weight' => '5',
             'visible' => FALSE,
           ),
           'col2' => array(
-            'weight' => '2',
+            'weight' => '4',
+            'visible' => FALSE,
+          ),
+          'link-only' => array(
+            'weight' => '1',
             'visible' => FALSE,
           ),
         ),
@@ -130,6 +140,52 @@ function smart_search_string_strongarm() {
     ),
   );
   $export['field_bundle_settings_node__smart_search_content'] = $strongarm;
+
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm->api_version = 1;
+  $strongarm->name = 'field_bundle_settings_paragraphs_item__link';
+  $strongarm->value = array(
+    'view_modes' => array(
+      'paragraphs_editor_preview' => array(
+        'custom_settings' => TRUE,
+      ),
+      'full' => array(
+        'custom_settings' => FALSE,
+      ),
+      'token' => array(
+        'custom_settings' => FALSE,
+      ),
+    ),
+    'extra_fields' => array(
+      'form' => array(),
+      'display' => array(),
+    ),
+  );
+  $export['field_bundle_settings_paragraphs_item__link'] = $strongarm;
+
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm->api_version = 1;
+  $strongarm->name = 'field_bundle_settings_paragraphs_item__smart_link';
+  $strongarm->value = array(
+    'view_modes' => array(
+      'paragraphs_editor_preview' => array(
+        'custom_settings' => TRUE,
+      ),
+      'full' => array(
+        'custom_settings' => FALSE,
+      ),
+      'token' => array(
+        'custom_settings' => FALSE,
+      ),
+    ),
+    'extra_fields' => array(
+      'form' => array(),
+      'display' => array(),
+    ),
+  );
+  $export['field_bundle_settings_paragraphs_item__smart_link'] = $strongarm;
 
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */

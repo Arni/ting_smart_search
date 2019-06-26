@@ -5,9 +5,7 @@
       var changed = false;
       var material_arr = [];
       $('#field-sss-boost-materials-values .form-item.form-type-textfield input.form-text').each(function(index){
-        //if ($(this).val() != '') {
           material_arr[index] = $(this).val();
-        //}
       });
 console.log(material_arr);
       $( ".ting_search-results" ).sortable({
@@ -31,7 +29,6 @@ console.log(material_arr);
             if ( start < material_arr.length && n == end ) {
               var temp_mat = material_arr.splice(start, 1)[0];
               material_arr.splice(end,0,material);
-              //array_move(material_arr, start, end);
             } else if (n == end) {
                 material_arr.splice(end,0, material);
               }

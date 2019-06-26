@@ -59,7 +59,7 @@ function smart_search_string_views_default_views() {
   $handler->display->display_options['fields']['title']['element_label_colon'] = FALSE;
   $handler->display->display_options['fields']['title']['element_default_classes'] = FALSE;
   $handler->display->display_options['fields']['title']['link_to_node'] = FALSE;
-  /* Felt: Indhold: Body */
+  /* Felt: Handler mangler eller er i stykker */
   $handler->display->display_options['fields']['body']['id'] = 'body';
   $handler->display->display_options['fields']['body']['table'] = 'field_data_body';
   $handler->display->display_options['fields']['body']['field'] = 'body';
@@ -146,6 +146,7 @@ function smart_search_string_views_default_views() {
   $handler->display->display_options['pager']['options']['tags']['last'] = 'sidste »';
   $handler->display->display_options['style_plugin'] = 'table';
   $handler->display->display_options['style_options']['columns'] = array(
+    'counter' => 'counter',
     'views_bulk_operations' => 'views_bulk_operations',
     'title' => 'title',
     'field_alternate_search_string' => 'field_alternate_search_string',
@@ -162,8 +163,13 @@ function smart_search_string_views_default_views() {
     'edit_link' => 'edit_link',
     'delete_link' => 'delete_link',
   );
-  $handler->display->display_options['style_options']['default'] = 'field_sss_hits_per_month';
+  $handler->display->display_options['style_options']['default'] = 'field_sss_hits_per_year';
   $handler->display->display_options['style_options']['info'] = array(
+    'counter' => array(
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0,
+    ),
     'views_bulk_operations' => array(
       'align' => '',
       'separator' => '',
@@ -209,7 +215,7 @@ function smart_search_string_views_default_views() {
     ),
     'field_sss_hits_per_year' => array(
       'sortable' => 1,
-      'default_sort_order' => 'asc',
+      'default_sort_order' => 'desc',
       'align' => '',
       'separator' => '',
       'empty_column' => 0,
@@ -306,6 +312,7 @@ function smart_search_string_views_default_views() {
   $handler->display->display_options['fields']['title']['label'] = 'Søgestreng';
   $handler->display->display_options['fields']['title']['alter']['make_link'] = TRUE;
   $handler->display->display_options['fields']['title']['alter']['path'] = 'search/ting/[title]';
+  $handler->display->display_options['fields']['title']['alter']['target'] = '_blank';
   /* Felt: ting_type: Alternativ søgestreng */
   $handler->display->display_options['fields']['field_alternate_search_string']['id'] = 'field_alternate_search_string';
   $handler->display->display_options['fields']['field_alternate_search_string']['table'] = 'field_data_field_alternate_search_string';
@@ -408,6 +415,27 @@ function smart_search_string_views_default_views() {
   $handler->display->display_options['filters']['title']['expose']['operator'] = 'title_op';
   $handler->display->display_options['filters']['title']['expose']['identifier'] = 'title';
   $handler->display->display_options['filters']['title']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0,
+    6 => 0,
+    7 => 0,
+    8 => 0,
+    9 => 0,
+    10 => 0,
+  );
+  /* Filterkriterie: ting_type: Status (field_status) */
+  $handler->display->display_options['filters']['field_status_value']['id'] = 'field_status_value';
+  $handler->display->display_options['filters']['field_status_value']['table'] = 'field_data_field_status';
+  $handler->display->display_options['filters']['field_status_value']['field'] = 'field_status_value';
+  $handler->display->display_options['filters']['field_status_value']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['field_status_value']['expose']['operator_id'] = 'field_status_value_op';
+  $handler->display->display_options['filters']['field_status_value']['expose']['label'] = 'Status';
+  $handler->display->display_options['filters']['field_status_value']['expose']['operator'] = 'field_status_value_op';
+  $handler->display->display_options['filters']['field_status_value']['expose']['identifier'] = 'field_status_value';
+  $handler->display->display_options['filters']['field_status_value']['expose']['remember_roles'] = array(
     2 => '2',
     1 => 0,
     3 => 0,

@@ -163,12 +163,91 @@ function smart_search_string_field_default_field_bases() {
         'term.identifier' => 'ISBN',
         'term.subject' => 'Emne',
         'facet.dk5' => 'Klassemærke',
+        'facet.genreCategory' => 'Fag/Skøn',
+        'facet.category' => 'Målgruppe',
       ),
       'allowed_values_function' => '',
       'profile2_private' => FALSE,
     ),
     'translatable' => 0,
     'type' => 'list_text',
+  );
+
+  // Exported field_base: 'field_paragraph_link'.
+  $field_bases['field_paragraph_link'] = array(
+    'active' => 1,
+    'cardinality' => 4,
+    'deleted' => 0,
+    'entity_types' => array(),
+    'field_name' => 'field_paragraph_link',
+    'indexes' => array(),
+    'locked' => 0,
+    'module' => 'link',
+    'settings' => array(
+      'attributes' => array(
+        'class' => '',
+        'rel' => '',
+        'target' => 'default',
+      ),
+      'display' => array(
+        'url_cutoff' => 80,
+      ),
+      'enable_tokens' => 1,
+      'profile2_private' => FALSE,
+      'title' => 'optional',
+      'title_maxlength' => 128,
+      'title_value' => '',
+      'url' => 0,
+    ),
+    'translatable' => 0,
+    'type' => 'link_field',
+  );
+
+  // Exported field_base: 'field_smart_link'.
+  $field_bases['field_smart_link'] = array(
+    'active' => 1,
+    'cardinality' => 3,
+    'deleted' => 0,
+    'entity_types' => array(),
+    'field_name' => 'field_smart_link',
+    'indexes' => array(),
+    'locked' => 0,
+    'module' => 'link',
+    'settings' => array(
+      'attributes' => array(
+        'class' => '',
+        'rel' => '',
+        'target' => 'default',
+      ),
+      'display' => array(
+        'url_cutoff' => 80,
+      ),
+      'enable_tokens' => 1,
+      'profile2_private' => FALSE,
+      'title' => 'optional',
+      'title_maxlength' => 128,
+      'title_value' => '',
+      'url' => 0,
+    ),
+    'translatable' => 0,
+    'type' => 'link_field',
+  );
+
+  // Exported field_base: 'field_smart_paragraph_link'.
+  $field_bases['field_smart_paragraph_link'] = array(
+    'active' => 1,
+    'cardinality' => 3,
+    'deleted' => 0,
+    'entity_types' => array(),
+    'field_name' => 'field_smart_paragraph_link',
+    'indexes' => array(),
+    'locked' => 0,
+    'module' => 'paragraphs',
+    'settings' => array(
+      'profile2_private' => FALSE,
+    ),
+    'translatable' => 0,
+    'type' => 'paragraphs',
   );
 
   // Exported field_base: 'field_smart_search_content_image'.
@@ -300,6 +379,32 @@ function smart_search_string_field_default_field_bases() {
     'type' => 'number_decimal',
   );
 
+  // Exported field_base: 'field_sss_import_update'.
+  $field_bases['field_sss_import_update'] = array(
+    'active' => 1,
+    'cardinality' => 1,
+    'deleted' => 0,
+    'entity_types' => array(),
+    'field_name' => 'field_sss_import_update',
+    'indexes' => array(
+      'value' => array(
+        0 => 'value',
+      ),
+    ),
+    'locked' => 0,
+    'module' => 'list',
+    'settings' => array(
+      'allowed_values' => array(
+        'locked' => 'No import',
+        'open' => 'Open for import',
+      ),
+      'allowed_values_function' => '',
+      'profile2_private' => FALSE,
+    ),
+    'translatable' => 0,
+    'type' => 'list_text',
+  );
+
   // Exported field_base: 'field_sss_sort'.
   $field_bases['field_sss_sort'] = array(
     'active' => 1,
@@ -376,7 +481,7 @@ function smart_search_string_field_default_field_bases() {
       'allowed_values' => array(
         'full' => 'Full',
         'teaser' => 'Teaser',
-        'col2' => 'Columns',
+        'link-only' => 'Link only',
       ),
       'allowed_values_function' => '',
       'profile2_private' => FALSE,

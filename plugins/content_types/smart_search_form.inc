@@ -19,7 +19,7 @@ $plugin = array(
 function ting_smart_search_form_content_type_access() {
   $return = FALSE;
   global $user;
-//dpm('Inside access check');
+
   if ($user->uid == '1') {
     $return = TRUE;
   }
@@ -38,7 +38,7 @@ function ting_smart_search_form_content_type_render($subtype, $conf, $panel_args
   // Create a form with options for the editors
   $form_state = array();
   $search_string = $context->data;
-//dpm($context);
+
   $entity_type_name = 'ting_type';
   $entity_bundle_name = 'smart_search_string';
   module_load_include('inc', 'eck', 'eck.entity');

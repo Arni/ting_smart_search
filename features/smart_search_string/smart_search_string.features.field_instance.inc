@@ -28,7 +28,7 @@ function smart_search_string_field_default_field_instances() {
     ),
     'entity_type' => 'field_collection_item',
     'field_name' => 'field_field_boost_value',
-    'label' => 'Værdi',
+    'label' => 'Parameter',
     'required' => 0,
     'settings' => array(
       'text_processing' => 0,
@@ -63,7 +63,7 @@ function smart_search_string_field_default_field_instances() {
     ),
     'entity_type' => 'field_collection_item',
     'field_name' => 'field_field_boost_weight',
-    'label' => 'Vægt',
+    'label' => 'Boost værdi',
     'required' => 0,
     'settings' => array(
       'text_processing' => 0,
@@ -112,8 +112,9 @@ function smart_search_string_field_default_field_instances() {
     ),
   );
 
-  // Exported field_instance: 'node-smart_search_content-body'.
-  $field_instances['node-smart_search_content-body'] = array(
+  // Exported field_instance:
+  // 'node-smart_search_content-field_smart_paragraph_link'.
+  $field_instances['node-smart_search_content-field_smart_paragraph_link'] = array(
     'bundle' => 'smart_search_content',
     'default_value' => NULL,
     'deleted' => 0,
@@ -121,46 +122,72 @@ function smart_search_string_field_default_field_instances() {
     'display' => array(
       'col2' => array(
         'label' => 'hidden',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_plain',
-        'weight' => 0,
+        'module' => 'paragraphs',
+        'settings' => array(
+          'view_mode' => 'full',
+        ),
+        'type' => 'paragraphs_view',
+        'weight' => 2,
       ),
       'default' => array(
         'label' => 'hidden',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_plain',
+        'module' => 'paragraphs',
+        'settings' => array(
+          'view_mode' => 'full',
+        ),
+        'type' => 'paragraphs_view',
+        'weight' => 3,
+      ),
+      'link-only' => array(
+        'label' => 'hidden',
+        'module' => 'paragraphs',
+        'settings' => array(
+          'view_mode' => 'full',
+        ),
+        'type' => 'paragraphs_view',
         'weight' => 0,
       ),
       'teaser' => array(
         'label' => 'hidden',
-        'module' => 'text',
+        'module' => 'paragraphs',
         'settings' => array(
-          'trim_length' => 600,
+          'view_mode' => 'full',
         ),
-        'type' => 'text_summary_or_trimmed',
-        'weight' => 2,
+        'type' => 'paragraphs_view',
+        'weight' => 1,
+      ),
+      'teaser_no_overlay' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
       ),
     ),
     'entity_type' => 'node',
-    'field_name' => 'body',
-    'label' => 'Body',
+    'field_name' => 'field_smart_paragraph_link',
+    'label' => 'Paragraph link',
     'required' => 0,
     'settings' => array(
-      'display_summary' => 1,
-      'text_processing' => 1,
+      'add_mode' => 'select',
+      'allowed_bundles' => array(
+        'link' => -1,
+        'smart_link' => 'smart_link',
+      ),
+      'bundle_weights' => array(
+        'link' => 2,
+        'smart_link' => -4,
+      ),
+      'default_edit_mode' => 'open',
+      'title' => 'Paragraph',
+      'title_multiple' => 'Paragraphs',
       'user_register_form' => FALSE,
     ),
     'widget' => array(
-      'active' => 1,
-      'module' => 'text',
-      'settings' => array(
-        'rows' => 20,
-        'summary_rows' => 5,
-      ),
-      'type' => 'text_textarea_with_summary',
-      'weight' => 2,
+      'active' => 0,
+      'module' => 'paragraphs',
+      'settings' => array(),
+      'type' => 'paragraphs_embed',
+      'weight' => 3,
     ),
   );
 
@@ -172,30 +199,42 @@ function smart_search_string_field_default_field_instances() {
     'description' => '',
     'display' => array(
       'col2' => array(
+        'label' => 'hidden',
+        'module' => 'cs_adaptive_image',
+        'settings' => array(
+          'image_link' => '',
+          'styles' => '',
+        ),
+        'type' => 'cs_adaptive_image',
+        'weight' => 0,
+      ),
+      'default' => array(
+        'label' => 'hidden',
+        'module' => 'cs_adaptive_image',
+        'settings' => array(
+          'image_link' => '',
+          'styles' => '',
+        ),
+        'type' => 'cs_adaptive_image',
+        'weight' => 4,
+      ),
+      'link-only' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 3,
+      ),
+      'teaser' => array(
+        'label' => 'hidden',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 2,
+      ),
+      'teaser_no_overlay' => array(
         'label' => 'above',
         'settings' => array(),
         'type' => 'hidden',
         'weight' => 0,
-      ),
-      'default' => array(
-        'label' => 'above',
-        'module' => 'image',
-        'settings' => array(
-          'image_link' => '',
-          'image_style' => '',
-        ),
-        'type' => 'image',
-        'weight' => 2,
-      ),
-      'teaser' => array(
-        'label' => 'hidden',
-        'module' => 'image',
-        'settings' => array(
-          'image_link' => '',
-          'image_style' => 'ding_list_small',
-        ),
-        'type' => 'image',
-        'weight' => 1,
       ),
     ),
     'entity_type' => 'node',
@@ -204,7 +243,7 @@ function smart_search_string_field_default_field_instances() {
     'required' => 0,
     'settings' => array(
       'alt_field' => 0,
-      'default_image' => 0,
+      'default_image' => 4107,
       'file_directory' => 'smart-search-content/image',
       'file_extensions' => 'png gif jpg jpeg',
       'max_filesize' => '',
@@ -218,6 +257,7 @@ function smart_search_string_field_default_field_instances() {
       'module' => 'media',
       'settings' => array(
         'allowed_schemes' => array(
+          'oembed' => 0,
           'public' => 'public',
           'vimeo' => 0,
           'youtube' => 0,
@@ -230,10 +270,10 @@ function smart_search_string_field_default_field_instances() {
         ),
         'browser_plugins' => array(
           'ding_content' => 0,
-          'media_default--media_browser_1' => 0,
+          'media_default--media_browser_1' => 'media_default--media_browser_1',
           'media_default--media_browser_my_files' => 0,
           'media_internet' => 0,
-          'upload' => 0,
+          'upload' => 'upload',
         ),
         'manualcrop_crop_info' => 1,
         'manualcrop_default_crop_area' => 1,
@@ -262,27 +302,37 @@ function smart_search_string_field_default_field_instances() {
       ),
     ),
     'deleted' => 0,
-    'description' => 'Vælh hvilken opstilling af indhold der skal benyttes i søgeresultatet',
+    'description' => 'Vælg hvilken opstilling af indhold der skal benyttes i søgeresultatet',
     'display' => array(
       'col2' => array(
         'label' => 'hidden',
-        'module' => 'i18n_field',
         'settings' => array(),
-        'type' => 'i18n_list_default',
-        'weight' => 1,
+        'type' => 'hidden',
+        'weight' => 3,
       ),
       'default' => array(
-        'label' => 'above',
-        'module' => 'list',
+        'label' => 'hidden',
         'settings' => array(),
-        'type' => 'list_default',
-        'weight' => 1,
+        'type' => 'hidden',
+        'weight' => 6,
+      ),
+      'link-only' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 4,
       ),
       'teaser' => array(
         'label' => 'above',
         'settings' => array(),
         'type' => 'hidden',
-        'weight' => 2,
+        'weight' => 3,
+      ),
+      'teaser_no_overlay' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
       ),
     ),
     'entity_type' => 'node',
@@ -297,7 +347,121 @@ function smart_search_string_field_default_field_instances() {
       'module' => 'options',
       'settings' => array(),
       'type' => 'options_select',
-      'weight' => 3,
+      'weight' => 4,
+    ),
+  );
+
+  // Exported field_instance: 'paragraphs_item-link-field_paragraph_link'.
+  $field_instances['paragraphs_item-link-field_paragraph_link'] = array(
+    'bundle' => 'link',
+    'default_value' => NULL,
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'module' => 'link',
+        'settings' => array(),
+        'type' => 'link_default',
+        'weight' => 1,
+      ),
+      'paragraphs_editor_preview' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+    'entity_type' => 'paragraphs_item',
+    'field_name' => 'field_paragraph_link',
+    'label' => 'Paragraph link',
+    'required' => 0,
+    'settings' => array(
+      'absolute_url' => 1,
+      'attributes' => array(
+        'class' => 'paragraph-link',
+        'configurable_class' => 0,
+        'configurable_title' => 0,
+        'rel' => '',
+        'target' => '_top',
+        'title' => '',
+      ),
+      'display' => array(
+        'url_cutoff' => 80,
+      ),
+      'enable_tokens' => 1,
+      'rel_remove' => 'default',
+      'title' => 'required',
+      'title_label_use_field_label' => 0,
+      'title_maxlength' => 60,
+      'title_value' => '',
+      'url' => 0,
+      'user_register_form' => FALSE,
+      'validate_url' => 0,
+    ),
+    'widget' => array(
+      'active' => 0,
+      'module' => 'link',
+      'settings' => array(),
+      'type' => 'link_field',
+      'weight' => 1,
+    ),
+  );
+
+  // Exported field_instance: 'paragraphs_item-smart_link-field_smart_link'.
+  $field_instances['paragraphs_item-smart_link-field_smart_link'] = array(
+    'bundle' => 'smart_link',
+    'default_value' => NULL,
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'module' => 'link',
+        'settings' => array(),
+        'type' => 'link_default',
+        'weight' => 1,
+      ),
+      'paragraphs_editor_preview' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+    'entity_type' => 'paragraphs_item',
+    'field_name' => 'field_smart_link',
+    'label' => 'Smart link',
+    'required' => 0,
+    'settings' => array(
+      'absolute_url' => 0,
+      'attributes' => array(
+        'class' => 'paragraph-link',
+        'configurable_class' => 0,
+        'configurable_title' => 0,
+        'rel' => '',
+        'target' => '_top',
+        'title' => '',
+      ),
+      'display' => array(
+        'url_cutoff' => 80,
+      ),
+      'enable_tokens' => 1,
+      'rel_remove' => 'default',
+      'title' => 'required',
+      'title_label_use_field_label' => 0,
+      'title_maxlength' => 60,
+      'title_value' => '',
+      'url' => 0,
+      'user_register_form' => FALSE,
+      'validate_url' => 0,
+    ),
+    'widget' => array(
+      'active' => 0,
+      'module' => 'link',
+      'settings' => array(),
+      'type' => 'link_field',
+      'weight' => 1,
     ),
   );
 
@@ -521,7 +685,7 @@ function smart_search_string_field_default_field_instances() {
         'year_range' => '-0:+2',
       ),
       'type' => 'date_popup',
-      'weight' => 5,
+      'weight' => 6,
     ),
   );
 
@@ -666,6 +830,48 @@ function smart_search_string_field_default_field_instances() {
     ),
   );
 
+  // Exported field_instance:
+  // 'ting_type-smart_search_string-field_sss_import_update'.
+  $field_instances['ting_type-smart_search_string-field_sss_import_update'] = array(
+    'bundle' => 'smart_search_string',
+    'default_value' => array(
+      0 => array(
+        'value' => 'locked',
+      ),
+    ),
+    'deleted' => 0,
+    'description' => 'Må denne smart search opdateres ved import',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'list',
+        'settings' => array(),
+        'type' => 'list_default',
+        'weight' => 10,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+    'entity_type' => 'ting_type',
+    'field_name' => 'field_sss_import_update',
+    'label' => 'Import update',
+    'required' => 0,
+    'settings' => array(
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 1,
+      'module' => 'options',
+      'settings' => array(),
+      'type' => 'options_select',
+      'weight' => 5,
+    ),
+  );
+
   // Exported field_instance: 'ting_type-smart_search_string-field_sss_sort'.
   $field_instances['ting_type-smart_search_string-field_sss_sort'] = array(
     'bundle' => 'smart_search_string',
@@ -708,7 +914,7 @@ function smart_search_string_field_default_field_instances() {
     'bundle' => 'smart_search_string',
     'default_value' => array(
       0 => array(
-        'value' => 'active',
+        'value' => 'inactive',
       ),
     ),
     'deleted' => 0,
@@ -748,16 +954,21 @@ function smart_search_string_field_default_field_instances() {
   // Included for use with string extractors like potx.
   t('Alternativ søgestreng');
   t('Antal klik per søgninger');
-  t('Body');
   t('Boost enkeltværdier i søgeresultatet');
+  t('Boost værdi');
   t('Boost værdier');
   t('Dato');
   t('Feltnavn');
   t('Fremhævede materialer');
   t('Image');
+  t('Import update');
   t('Indhold vises i toppen af søgelisten');
   t('Indholds reference');
   t('Kun materialer, som er del af søgeresultatet, kan fremhæves');
+  t('Må denne smart search opdateres ved import');
+  t('Paragraph link');
+  t('Parameter');
+  t('Smart link');
   t('Sortering');
   t('Status');
   t('Sæt dato hvis planlagt');
@@ -767,9 +978,7 @@ function smart_search_string_field_default_field_instances() {
   t('Søgninger - år');
   t('Tvunget sortering - Vælger du en sortering, sætter den alle andre smart-search felter ud af kraft.');
   t('View mode');
-  t('Vægt');
-  t('Vælh hvilken opstilling af indhold der skal benyttes i søgeresultatet');
-  t('Værdi');
+  t('Vælg hvilken opstilling af indhold der skal benyttes i søgeresultatet');
 
   return $field_instances;
 }

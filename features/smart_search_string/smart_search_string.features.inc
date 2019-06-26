@@ -104,3 +104,22 @@ function smart_search_string_node_info() {
   drupal_alter('node_info', $items);
   return $items;
 }
+
+/**
+ * Implements hook_paragraphs_info().
+ */
+function smart_search_string_paragraphs_info() {
+  $items = array(
+    'link' => array(
+      'name' => 'Link',
+      'bundle' => 'link',
+      'locked' => '1',
+    ),
+    'smart_link' => array(
+      'name' => 'Smart link',
+      'bundle' => 'smart_link',
+      'locked' => '1',
+    ),
+  );
+  return $items;
+}

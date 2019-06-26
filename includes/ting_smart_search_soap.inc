@@ -9,7 +9,6 @@
 function ting_smart_search_soap_page() {
   $output = '';
 
-  //require_once('nusoap.php');
   // Configuration
   $wsdl_path = 'http://report2.webtrekk.de/SOAPv3.wsdl';
   $method = 'getReportData';
@@ -20,16 +19,16 @@ function ting_smart_search_soap_page() {
   'report_name' => 'smartsearch',
   'is_java' => 1,
   );
-  //dpm($parameter);
+
   // Create nusoap Client instance and check for errors
   $client = new SOAPClient($wsdl_path); // possibly new nusoap_client(…)
   //$err = $client->getError();
-/*
-  if ($err) {
-    drupal_set_message('<h2>Error while creating SOAP-instance</h2><pre>' . $err . '</pre>');
-  exit(1);
-  }
-*/
+  /*
+    if ($err) {
+      drupal_set_message('<h2>Error while creating SOAP-instance</h2><pre>' . $err . '</pre>');
+    exit(1);
+    }
+  */
   // Retrieve data and check for errors
   $result = $client->__call($method, array ($parameter));
   if ($client->fault) {
