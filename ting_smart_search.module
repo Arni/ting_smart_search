@@ -94,6 +94,7 @@ function ting_smart_search_opensearch_pre_execute($request) {
 
         $smart_search_check_sort = '';
         $smart_search_check_boosts = array();
+        $smart_search_check_object_boosts = false;
 
         // store the userDefinedBoost if any
         $smart_search_userdefined_boosts = $request->userDefinedBoost;
@@ -172,10 +173,41 @@ function ting_smart_search_opensearch_pre_execute($request) {
             }
           }
         }
+        if (!$smart_search_check_object_boosts) {
+          $request->userDefinedBoost = ting_smart_search_auto($smart_search_userdefined_boosts, $request->fullTextQuery); //Todo add support for fulltextquery in opensearch module
+        }
+        
         break;
     }
-//ting_smart_search_get_autodata();
+    
   return NULL;
+}
+
+function ting_smart_search_auto($smart_search_userdefined_boosts, $keys) {
+  $data = ting_smart_search_autodata_cache();
+
+  if (array_key_exists($keys, $data)) {
+    $i = 0;
+    $weight = 10000;
+    foreach ($data[$keys] as $faust => $objects) {
+      $smart_search_userdefined_boosts[] = array(
+          'fieldName' => 'term.default',
+          'fieldValue' => urldecode($faust),
+          'weight' => $weight,
+      );
+      $weight = $weight - 1000;
+      $i += 1;
+      if ($i > 4) {
+        break;
+      }
+    }
+  }
+  return $smart_search_userdefined_boosts;
+}
+
+function ting_smart_search_autodata_cache() {
+    @include ting_smart_search_get_autodata_path();
+    return isset($ting_smart_search_autodata ) ? $ting_smart_search_autodata : false;
 }
 
 function ting_smart_search_opensearch_post_execute($request, $response, $raw_response) {
@@ -506,47 +538,43 @@ function ting_smart_search_parse_autodata() {
     }
     fclose($file);
 
-    file_put_contents("/var/www/drupal7vm/drupal/debug/auto1.txt", print_r($lines, TRUE), FILE_APPEND);
+    foreach ($lines as $line) {
 
-  foreach ($lines as $line) {
-
-    $search = explode('.search.ting.', $line[0]);
-    $search_string = $search[1];
-    $hits = $line[2];
-    $object = null;
-    if (strpos($line[1], '.ting.object.') !== false) {
-      $object = explode('.ting.object.', $line[1]);
-    } else if (strpos($line[1], '.ting.collection.') !== false) {
-      $object = explode('.ting.collection.', $line[1]);
-    }
-    $faust = $object[1];
-    if (isset($object)) {
-      if (!array_key_exists($search_string, $data)) {
-        $data[$search_string] = array();
+      $search = explode('.search.ting.', $line[0]);
+      $search_string = $search[1];
+      $hits = $line[2];
+      $object = null;
+      if (strpos($line[1], '.ting.object.') !== false) {
+        $object = explode('.ting.object.', $line[1]);
+      } else if (strpos($line[1], '.ting.collection.') !== false) {
+        $object = explode('.ting.collection.', $line[1]);
       }
+      $faust = $object[1];
+      if (isset($object)) {
+        if (!array_key_exists($search_string, $data)) {
+          $data[$search_string] = array();
+        }
 
-      if (!array_key_exists($faust, $data[$search_string])) {
-        $data[$search_string][$faust] = $hits;
-      } else {
-        $data[$search_string][$faust] += $hits;
+        if (!array_key_exists($faust, $data[$search_string])) {
+          $data[$search_string][$faust] = $hits;
+        } else {
+          $data[$search_string][$faust] += $hits;
+        }
       }
     }
-  }
 
-  $output = array();
-  foreach ($data as $search => $objects) {
-    arsort($objects);
-    $output[$search] = array_slice($objects, 0, 5);
-  }
+    $output = array();
+    foreach ($data as $search => $objects) {
+      arsort($objects);
+      $output[$search] = array_slice($objects, 0, 5);
+    }
 
-  $val = var_export($output, true);
-  
-  //file_put_contents("/var/www/drupal7vm/drupal/debug/auto2.txt", print_r($val, TRUE), FILE_APPEND);
-   
-  file_put_contents(ting_smart_search_get_autodata_path() , '<?php $ting_smart_search_autodata = ' . $val . ';'); //, LOCK_EX doesn't work maybe a windows issue
-  
-  //file_put_contents($autodata_path , print_r($val, TRUE), FILE_APPEND);
-  
+    $val = var_export($output, true);
+
+    //file_put_contents("/var/www/drupal7vm/drupal/debug/auto2.txt", print_r($val, TRUE), FILE_APPEND);
+
+    file_put_contents(ting_smart_search_get_autodata_path(), '<?php $ting_smart_search_autodata = ' . $val . ';'); //, LOCK_EX doesn't work maybe a windows issue
+    //file_put_contents($autodata_path , print_r($val, TRUE), FILE_APPEND);
   } catch (Exception $e) {
     watchdog('ting_smart_search', 'Failed to parse rawdata file ' . $e->getMessage());
   }
