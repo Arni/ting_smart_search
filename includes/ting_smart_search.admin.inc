@@ -25,9 +25,59 @@ function ting_smart_search_admin_page() {
 function ting_smart_search_admin_form($form, &$form_state) {
   $form = array();
 
-  $form['settings'] = array(
+  $form['import_automatic_data'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Smart search settings'),
+    '#title' => t('Automatic smart search import settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['import_automatic_data']['ting_smart_search_automatic_active'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Activate automatic smart search'),
+    '#default_value' => variable_get('ting_smart_search_automatic_active', TRUE),
+    '#description' => t('Fetch data for popular terms'),
+  );
+
+  $form['import_automatic_data']['ting_smart_search_webtrekk_server_auto'] = array(
+    '#title' => t('Webtrekk server for automatic smart search'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('ting_smart_search_webtrekk_server_auto', ''),
+    '#required' => FALSE,
+    '#states' => array(
+      // Only show this field when the field: import from remote server is NOT checked.
+      'visible' => array(
+          ':input[name="ting_smart_search_automatic_active"]' => array('checked' => TRUE)),
+    ),
+    '#description' => t('The path to webtrekk data'),
+  );
+
+  $form['import_automatic_data']['ting_smart_search_master_server'] = array(
+    '#title' => t('Master server for automatic smart search'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('ting_smart_search_master_server', 'https://randersbib.dk/'),
+    '#required' => FALSE,
+    '#states' => array(
+      // Only show this field when the field: import from remote server is NOT checked.
+      'visible' => array(
+          ':input[name="ting_smart_search_automatic_active"]' => array('checked' => TRUE)),
+    ),
+    '#description' => t('The path to master server data - active if field for Webtrekk automatic server is empty.'),
+  );
+
+  $form['import_webtrekk_stats'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Webtrekk statistics'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['import_webtrekk_stats']['ting_smart_search_webtrekk_server_feed'] = array(
+    '#title' => t('Webtrekk statistics feed'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('ting_smart_search_webtrekk_server_feed', 'http://www.kpiindex.com/index2/search_feed.csv'),
+    '#required' => FALSE,
+    '#description' => t('The path to the webtrekk feed, fetches stats on popular search terms'),
   );
 
   $form['well_index_settings'] = array(
@@ -43,56 +93,6 @@ function ting_smart_search_admin_form($form, &$form_state) {
     '#default_value' => variable_get('ting_smart_search_well_index_records', "term.acSource\nterm.creator\nterm.date\nterm.language\nterm.type\nterm.identifier\nterm.subject\nfacet.dk5"),
     '#required' => FALSE,
     '#description' => t('Indtast hvert brøndindeks på ny linie.'),
-  );
-
-  $form['webtrekk_settings'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Webtrekk account settings'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-
-  $form['webtrekk_settings']['ting_smart_search_webtrekk_customerid'] = array(
-    '#title' => t('Webtrekk customerId'),
-    '#type' => 'textfield',
-    '#default_value' => variable_get('ting_smart_search_webtrekk_customerid', 0),
-    '#required' => FALSE,
-    '#description' => t('The customer Id for the webtrekk account.'),
-  );
-
-  $form['webtrekk_settings']['ting_smart_search_webtrekk_customerlogin'] = array(
-    '#title' => t('Webtrekk customer login'),
-    '#type' => 'textfield',
-    '#default_value' => variable_get('ting_smart_search_webtrekk_customerlogin', ''),
-    '#required' => FALSE,
-    '#description' => t('The customer login for the webtrekk account.'),
-  );
-
-  $form['webtrekk_settings']['ting_smart_search_webtrekk_customerpassword'] = array(
-    '#title' => t('Webtrekk customer password'),
-    '#type' => 'textfield',
-    '#default_value' => variable_get('ting_smart_search_webtrekk_customerpassword', ''),
-    '#required' => FALSE,
-    '#description' => t('The customer password for the webtrekk account.'),
-  );
-
-  $form['compile_stats'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Compile statistics'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-
-  $form['compile_stats']['submit_stats'] = array(
-    '#value' => t('Compile statfiles'),
-    '#type' => 'submit',
-    '#submit' => array('ting_smart_search_compilestats_form_submit'),
-  );
-
-  $form['compile_stats']['submit_placing'] = array(
-    '#value' => t('Compile placings'),
-    '#type' => 'submit',
-    '#submit' => array('ting_smart_search_compileplacings_form_submit'),
   );
 
   $form['export_smartsearch'] = array(
@@ -336,7 +336,7 @@ dpm($import_entity);
             drupal_set_message('Title: '.$title.' has been updated.');
           } else {
 
-            drupal_set_message('Smart search string found, but locked; no update performed.');            
+            drupal_set_message('Smart search string found, but locked; no update performed.');
           }
 
         } else {
