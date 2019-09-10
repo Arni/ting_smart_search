@@ -518,20 +518,44 @@ function ting_smart_search_preprocess_node(&$variables) {
   }
 }
 
-function ting_smart_search_parse_autodata() {
+/**
+ * Gets a file with data automatic smart search from webtrekk
+ */
+function ting_smart_search_get_autodata_from_webtrekk() {
+  try {
+    $url = variable_get('ting_smart_search_webtrekk_server_feed', 'http://www.kpiindex.com/index2/Smartsearch1y.csv');
+    $path_year = file_default_scheme() . '://' . variable_get('ting_smart_search_autodata_path', 'smartsearchdata') . DIRECTORY_SEPARATOR . 'autodatayear.csv';
+    //ting_smart_search_copyfile_chunked($url, $path_year);
+    //$data_year = ting_smart_search_parse_autodata($path_year); 
+    
+    $url = variable_get('ting_smart_search_webtrekk_server_feed', 'http://www.kpiindex.com/index2/Smartsearch1m.csv');
+    $path_month = file_default_scheme() . '://' . variable_get('ting_smart_search_autodata_path', 'smartsearchdata') . DIRECTORY_SEPARATOR . 'autodatamonth.csv';
+    //ting_smart_search_copyfile_chunked($url, $path_month);
+    $data_month = ting_smart_search_parse_autodata($path_month); 
+    
+    
+    
+//    $val = var_export($output, true);
+//    file_put_contents(ting_smart_search_get_autodata_path(), '<?php $ting_smart_search_autodata = ' . $val . ';'); //, LOCK_EX doesn't work maybe a windows issue
+  } catch (Exception $e) {
+    watchdog('ting_smart_search', 'Fetching auto smart search data failed: ' . $e->getMessage());
+  }
+}
+
+function ting_smart_search_parse_autodata($path) {
   print 'starting';
   $data = array();
   $lines = array();
-  $path = file_default_scheme() . '://' . variable_get('ting_smart_search_autodata_path', 'smartsearchdata') . DIRECTORY_SEPARATOR . 'rawdata.csv';
-
+  $output = array();
+  
   try {
     $file = fopen($path, 'r');
 
-    while (($line = fgetcsv($file, 1000, "\t")) !== FALSE) {
+    while (($line = fgetcsv($file, 1000, ";")) !== FALSE) {
       $lines[] = $line;
     }
     fclose($file);
-
+ file_put_contents("/var/www/drupal7vm/drupal/debug/autofeed2.txt", print_r($lines, TRUE), FILE_APPEND);
     foreach ($lines as $line) {
 
       $search = explode('.search.ting.', $line[0]);
@@ -557,18 +581,17 @@ function ting_smart_search_parse_autodata() {
       }
     }
 
-    $output = array();
+    
     foreach ($data as $search => $objects) {
       arsort($objects);
       $output[$search] = array_slice($objects, 0, 5);
     }
+file_put_contents("/var/www/drupal7vm/drupal/debug/autofeed3.txt", print_r(memory_get_peak_usage(), TRUE), FILE_APPEND);
 
-    $val = var_export($output, true);
-    file_put_contents(ting_smart_search_get_autodata_path(), '<?php $ting_smart_search_autodata = ' . $val . ';'); //, LOCK_EX doesn't work maybe a windows issue
   } catch (Exception $e) {
     watchdog('ting_smart_search', 'Failed to parse rawdata file ' . $e->getMessage());
   }
-  print 'finished';
+  return $output;
 }
 
 function ting_smart_search_get_autodata_path() {
@@ -602,13 +625,6 @@ function ting_smart_search_get_autodata_from_master($url) {
   }
 }
 
-/**
- * Gets a file with data automatic smart search from webtrekk
- */
-function ting_smart_search_get_autodata_from_webtrekk($url) {
-  
-}
-
 
 /**
  * Gets a file with data automatic smart search from webtrekk
@@ -620,20 +636,22 @@ function ting_smart_search_get_searchdata_from_webtrekk() {
   $path = file_default_scheme() . '://' . variable_get('ting_smart_search_autodata_path', 'smartsearchdata') . DIRECTORY_SEPARATOR . 'searchfeed.csv';
   $url = variable_get('ting_smart_search_webtrekk_server_feed', 'http://www.kpiindex.com/index2/search_feed.csv');
   ting_smart_search_get_search_feed_file($url, $path);  
-  //Todo get a better file format
+
   $file = fopen($path, 'r');
   while (($line = fgetcsv($file, 1000, ",")) !== FALSE) {
     $search_key = $line[2];
     $number_of_searches = $line[3];
-    if (ting_smart_search_is_from_last_month($line, 13)) { 
-      //Using a whole year creates memory problems so we only use the last 3 months
-      if (array_key_exists($search_key, $search_data) && is_numeric($number_of_searches)) {
-        $search_data[$search_key]['long_period'] += $number_of_searches;
-      } else {
-        $search_data[$search_key] = array('long_period' => $number_of_searches, 'short_period' => 0);
-      }
-      if (ting_smart_search_is_from_last_month($line, 4)) {
-        $search_data[$search_key]['short_period'] += $number_of_searches;
+    if (!((strpos($search_key, '=') !== false) || (strpos($search_key, '(') !== false))) {
+      if (ting_smart_search_is_from_last_month($line, 13)) {
+        //Using a whole year creates memory problems so we only use the last 3 months
+        if (array_key_exists($search_key, $search_data) && is_numeric($number_of_searches)) {
+          $search_data[$search_key]['long_period'] += $number_of_searches;
+        } else {
+          $search_data[$search_key] = array('long_period' => $number_of_searches, 'short_period' => 0);
+        }
+        if (ting_smart_search_is_from_last_month($line, 4)) {
+          $search_data[$search_key]['short_period'] += $number_of_searches;
+        }
       }
     }
   }
@@ -641,13 +659,10 @@ function ting_smart_search_get_searchdata_from_webtrekk() {
   uasort($search_data, 'ting_smart_search_sort_search_data');
   $search_data = array_slice($search_data, 0, variable_get('ting_smart_search_search_feed_updates', 1000)); 
   
-//  foreach ($search_data as $key => $value) {
-//     $output[] = $key . ',' . $value['three_months'] . ',' . $value['month'];
-//  }
-//  
-  //  http://www.kpiindex.com/index2/search_feed.csv 
-  
-  file_put_contents("/var/www/drupal7vm/drupal/debug/feed1.txt", print_r($search_data, TRUE), FILE_APPEND);
+
+  ting_smart_search_search_stats_importer($search_data);
+//  ting_smart_search_get_autodata_from_webtrekk(); 
+//  file_put_contents("/var/www/drupal7vm/drupal/debug/feed1.txt", print_r($search_data, TRUE), FILE_APPEND);
 }
 
 /**
@@ -693,10 +708,70 @@ function ting_smart_search_is_from_last_month($line, $lookback_period = 4) {
 }
 
 function ting_smart_search_sort_search_data($a, $b) {
-    if ($a['long_period'] == $b['long_period']) {
-        return 0;
+  if ($a['long_period'] == $b['long_period']) {
+    return 0;
+  }
+  return ($a['long_period'] < $b['long_period']) ? 1 : -1;
+}
+
+/**
+ * Import stats from csv file
+ */
+function ting_smart_search_search_stats_importer($search_data) {
+  file_put_contents("/var/www/drupal7vm/drupal/debug/feed4.txt", print_r("starting import", TRUE), FILE_APPEND);
+  try {
+    foreach ($search_data as $title => $value) {
+      $hits_year = $value['long_period'];
+      $hits_month = $value['short_period'];
+
+      // fail if key fields are not present
+      if (empty($title)) {
+        drupal_set_message('Key fields are missing from array ' . $i . '. Check the file and try again');
+      } else {
+//        }
+        $normalized_string = mb_convert_encoding($title, 'UTF-8', 'ISO-8859-15');
+        file_put_contents("/var/www/drupal7vm/drupal/debug/feed8.txt", print_r(mb_detect_encoding($title), TRUE), FILE_APPEND);
+        // find the matching entity and assign the stats
+        $ssquery = new EntityFieldQuery();
+
+        $ssquery->entityCondition('entity_type', 'ting_type')
+                ->entityCondition('bundle', 'smart_search_string')
+                ->propertyCondition('title', $normalized_string, '=');
+
+        $result = $ssquery->execute();
+
+        if (isset($result['ting_type'])) {
+          $string_items_nids = array_keys($result['ting_type']);
+          $string_item = entity_metadata_wrapper('ting_type', $string_items_nids[0]);
+          $string_item->field_sss_hits_per_year->set($hits_year);
+          $string_item->field_sss_hits_per_month->set($hits_month);
+          // save
+          $string_item->save();
+          //drupal_set_message('Title: ' . $title . ' has been substituted with: ' . $hits_year . ' - ' . $hits_month);
+        } else {
+
+          //drupal_set_message('No smart string found - creating new smart string');
+          // create a new node and assign the data
+          $values = array(
+              'type' => 'smart_search_string',
+              'uid' => 1,
+              'status' => 1,
+          );
+          $entity = entity_create('ting_type', $values);
+          $new_string_item = entity_metadata_wrapper('ting_type', $entity);
+          $new_string_item->title->set($normalized_string);
+          $new_string_item->field_sss_hits_per_year->set($hits_year);
+          $new_string_item->field_sss_hits_per_month->set($hits_month);
+
+          // save
+          $new_string_item->save();
+        }
+      }
     }
-    return ($a['long_period'] < $b['long_period']) ? 1 : -1;
+  } catch (Exception $e) {
+    watchdog('ting_smart_search', 'Importing search feed data to database failed: ' . $e->getMessage());
+  }
+  file_put_contents("/var/www/drupal7vm/drupal/debug/feed5.txt", print_r("Ending import", TRUE), FILE_APPEND);
 }
 
 /**
