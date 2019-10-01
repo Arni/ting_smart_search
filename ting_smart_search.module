@@ -31,29 +31,27 @@ function ting_smart_search_ctools_plugin_api($module, $api) {
 
 /**
  * Implements hook_cron().
+ * Gets update off auto data every day and update of search data every week
  */
 function ting_smart_search_cron() {
-  //TODO cleanup messy code
-  $last_run = variable_get('ting_smart_search_last_cron', 0);
-  $interval = variable_get('ting_smart_search_interval', 36000);
-  if (time() - $last_run > $interval) {
-    // If possible we get a already processed file from a master server else we
-    // import directly from webtrekk
-    $master_server = variable_get('ting_smart_search_master_server', null);
-    $webtrekk_server = variable_get('ting_smart_search_webtrekk_server', null);
-    if (isset($master_server)) {
-      ting_smart_search_get_autodata_from_master($master_server);
+  $last_run_auto = variable_get('ting_smart_search_last_cron_auto', 0);
+  $interval_auto = variable_get('ting_smart_search_interval_auto', 36000); //To 24 hours
+  if (time() - $last_run_auto > $interval_auto) {
+    $autodata_server = variable_get('ting_smart_search_master_server', null); //To do our server 
+    if (isset($autodata_server)) {
+      ting_smart_search_get_autodata_from_master($autodata_server);
       watchdog('Smart Search', 'imported from master server: %time', array('%time' => time()), 'WATCHDOG_INFO');
-    } elseif (isset($webtrekk_server)) {
-      ting_smart_search_get_autodata_from_webtrekk($webtrekk_server);
-      watchdog('Smart Search', 'imported from webtrekk server: %time', array('%time' => time()), 'WATCHDOG_INFO');
+      variable_set('ting_smart_search_last_cron_auto', time());
     }
-    variable_set('ting_smart_search_last_cron', time());
   }
-
-
-  //watchdog('Smart Search','last import: %last_run', array('%last_run' =>$last_run),'WATCHDOG_INFO');
-  //watchdog('ting_smart_search','last import: %last_run', array('%last_run' =>$last_run));
+  
+  $last_run_feed = variable_get('ting_smart_search_last_cron_feed', 0);
+  $interval_feed = variable_get('ting_smart_search_interval_feed', 36000); //Todo 1 week
+  if (time() - $last_run_feed > $interval_feed) {
+    //ting_smart_search_get_searchdata_from_webtrekk();
+    watchdog('Smart Search', 'imported from webtrekk server: %time', array('%time' => time()), 'WATCHDOG_INFO');
+    variable_set('ting_smart_search_last_cron_feed', time());
+  }
 }
 
 /**
@@ -205,7 +203,9 @@ function ting_smart_search_auto($smart_search_userdefined_boosts, $keys) {
 }
 
 function ting_smart_search_autodata_cache() {
-  @include ting_smart_search_get_autodata_path();
+  if (file_exists(ting_smart_search_get_autodata_path())) {
+    @include ting_smart_search_get_autodata_path();
+  }
   return isset($ting_smart_search_autodata) ? $ting_smart_search_autodata : false;
 }
 
@@ -518,81 +518,6 @@ function ting_smart_search_preprocess_node(&$variables) {
   }
 }
 
-/**
- * Gets a file with data automatic smart search from webtrekk
- */
-function ting_smart_search_get_autodata_from_webtrekk() {
-  try {
-    $url = variable_get('ting_smart_search_webtrekk_server_feed', 'http://www.kpiindex.com/index2/Smartsearch1y.csv');
-    $path_year = file_default_scheme() . '://' . variable_get('ting_smart_search_autodata_path', 'smartsearchdata') . DIRECTORY_SEPARATOR . 'autodatayear.csv';
-    //ting_smart_search_copyfile_chunked($url, $path_year);
-    //$data_year = ting_smart_search_parse_autodata($path_year); 
-    
-    $url = variable_get('ting_smart_search_webtrekk_server_feed', 'http://www.kpiindex.com/index2/Smartsearch1m.csv');
-    $path_month = file_default_scheme() . '://' . variable_get('ting_smart_search_autodata_path', 'smartsearchdata') . DIRECTORY_SEPARATOR . 'autodatamonth.csv';
-    //ting_smart_search_copyfile_chunked($url, $path_month);
-    $data_month = ting_smart_search_parse_autodata($path_month); 
-    
-    
-    
-//    $val = var_export($output, true);
-//    file_put_contents(ting_smart_search_get_autodata_path(), '<?php $ting_smart_search_autodata = ' . $val . ';'); //, LOCK_EX doesn't work maybe a windows issue
-  } catch (Exception $e) {
-    watchdog('ting_smart_search', 'Fetching auto smart search data failed: ' . $e->getMessage());
-  }
-}
-
-function ting_smart_search_parse_autodata($path) {
-  print 'starting';
-  $data = array();
-  $lines = array();
-  $output = array();
-  
-  try {
-    $file = fopen($path, 'r');
-
-    while (($line = fgetcsv($file, 1000, ";")) !== FALSE) {
-      $lines[] = $line;
-    }
-    fclose($file);
- file_put_contents("/var/www/drupal7vm/drupal/debug/autofeed2.txt", print_r($lines, TRUE), FILE_APPEND);
-    foreach ($lines as $line) {
-
-      $search = explode('.search.ting.', $line[0]);
-      $search_string = $search[1];
-      $hits = $line[2];
-      $object = null;
-      if (strpos($line[1], '.ting.object.') !== false) {
-        $object = explode('.ting.object.', $line[1]);
-      } else if (strpos($line[1], '.ting.collection.') !== false) {
-        $object = explode('.ting.collection.', $line[1]);
-      }
-      $faust = $object[1];
-      if (isset($object)) {
-        if (!array_key_exists($search_string, $data)) {
-          $data[$search_string] = array();
-        }
-
-        if (!array_key_exists($faust, $data[$search_string])) {
-          $data[$search_string][$faust] = $hits;
-        } else {
-          $data[$search_string][$faust] += $hits;
-        }
-      }
-    }
-
-    
-    foreach ($data as $search => $objects) {
-      arsort($objects);
-      $output[$search] = array_slice($objects, 0, 5);
-    }
-file_put_contents("/var/www/drupal7vm/drupal/debug/autofeed3.txt", print_r(memory_get_peak_usage(), TRUE), FILE_APPEND);
-
-  } catch (Exception $e) {
-    watchdog('ting_smart_search', 'Failed to parse rawdata file ' . $e->getMessage());
-  }
-  return $output;
-}
 
 function ting_smart_search_get_autodata_path() {
   return file_default_scheme() . '://' . variable_get('ting_smart_search_autodata_path', 'smartsearchdata') . DIRECTORY_SEPARATOR . 'autodata.txt';
@@ -602,9 +527,7 @@ function ting_smart_search_get_autodata_path() {
  * Gets a file with data automatic smart search from master server
  */
 function ting_smart_search_get_autodata_from_master($url) {
-  //$url = variable_get('ting_smart_search_master_server', 'https://staging.randersbib.dk/sites/default/files/shareddata/autodata.txt');
   $path = ting_smart_search_get_autodata_path();
-
   $directory = dirname($path);
 
   try {
@@ -630,8 +553,6 @@ function ting_smart_search_get_autodata_from_master($url) {
  * Gets a file with data automatic smart search from webtrekk
  */
 function ting_smart_search_get_searchdata_from_webtrekk() {
-  file_put_contents("/var/www/drupal7vm/drupal/debug/feed2.txt", print_r("Ramt", TRUE), FILE_APPEND);
-  print "starting";
   $search_data = array();
   $path = file_default_scheme() . '://' . variable_get('ting_smart_search_autodata_path', 'smartsearchdata') . DIRECTORY_SEPARATOR . 'searchfeed.csv';
   $url = variable_get('ting_smart_search_webtrekk_server_feed', 'http://www.kpiindex.com/index2/search_feed.csv');
@@ -642,14 +563,14 @@ function ting_smart_search_get_searchdata_from_webtrekk() {
     $search_key = $line[2];
     $number_of_searches = $line[3];
     if (!((strpos($search_key, '=') !== false) || (strpos($search_key, '(') !== false))) {
-      if (ting_smart_search_is_from_last_month($line, 13)) {
+      if (ting_smart_search_is_from_period($line, 13)) {
         //Using a whole year creates memory problems so we only use the last 3 months
         if (array_key_exists($search_key, $search_data) && is_numeric($number_of_searches)) {
           $search_data[$search_key]['long_period'] += $number_of_searches;
         } else {
           $search_data[$search_key] = array('long_period' => $number_of_searches, 'short_period' => 0);
         }
-        if (ting_smart_search_is_from_last_month($line, 4)) {
+        if (ting_smart_search_is_from_period($line, 4)) {
           $search_data[$search_key]['short_period'] += $number_of_searches;
         }
       }
@@ -659,39 +580,21 @@ function ting_smart_search_get_searchdata_from_webtrekk() {
   uasort($search_data, 'ting_smart_search_sort_search_data');
   $search_data = array_slice($search_data, 0, variable_get('ting_smart_search_search_feed_updates', 1000)); 
   
-
   ting_smart_search_search_stats_importer($search_data);
-//  ting_smart_search_get_autodata_from_webtrekk(); 
-//  file_put_contents("/var/www/drupal7vm/drupal/debug/feed1.txt", print_r($search_data, TRUE), FILE_APPEND);
 }
 
 /**
  * Gets a file with data automatic smart search from master server
  */
 function ting_smart_search_get_search_feed_file($url, $path) {
-  $directory = dirname($path);
-
   try {
-//    $ch = curl_init($url);
-//    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//    $data = curl_exec($ch);
-//    curl_close($ch);
-//file_put_contents("/var/www/drupal7vm/drupal/debug/feed3.txt", print_r("Got file", TRUE), FILE_APPEND);
-//    // Build the destination folder tree if it doesn't already exist.
-//    if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
-//      watchdog('ting_smart_search', 'Failed to create directory: %directory', array('%directory' => $directory), WATCHDOG_ERROR);
-//      return FALSE;
-//    }
-//
-//    file_put_contents($path, $data);
     ting_smart_search_copyfile_chunked($url, $path);
-    file_put_contents("/var/www/drupal7vm/drupal/debug/feed3.txt", print_r("Got file", TRUE), FILE_APPEND);
   } catch (Exception $e) {
     watchdog('ting_smart_search', 'Fetching smart search data feed failed: ' . $e->getMessage());
   }
 }
 
-function ting_smart_search_is_from_last_month($line, $lookback_period = 4) {
+function ting_smart_search_is_from_period($line, $lookback_period = 4) {
   $date = new DateTime();
   $year = $date->format("Y");
   $week = $date->format("W");
@@ -747,10 +650,7 @@ function ting_smart_search_search_stats_importer($search_data) {
           $string_item->field_sss_hits_per_month->set($hits_month);
           // save
           $string_item->save();
-          //drupal_set_message('Title: ' . $title . ' has been substituted with: ' . $hits_year . ' - ' . $hits_month);
         } else {
-
-          //drupal_set_message('No smart string found - creating new smart string');
           // create a new node and assign the data
           $values = array(
               'type' => 'smart_search_string',
@@ -775,7 +675,8 @@ function ting_smart_search_search_stats_importer($search_data) {
 }
 
 /**
- * Copy remote file over HTTP one small chunk at a time.
+ * Copy remote file over HTTP one small chunk at a time. 
+ * Taken from ting_subsearch_suggestions module.
  *
  * @param string $infile
  *   The full URL to the remote file
