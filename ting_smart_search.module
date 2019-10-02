@@ -39,7 +39,7 @@ function ting_smart_search_cron() {
   if (time() - $last_run_auto > $interval_auto) {
     $autodata_server = variable_get('ting_smart_search_master_server', null); //To do our server 
     if (isset($autodata_server)) {
-      ting_smart_search_get_autodata_from_master($autodata_server);
+      ting_smart_search_get_autodata_from_master($autodata_server, ting_smart_search_get_autodata_path());
       watchdog('Smart Search', 'imported from master server: %time', array('%time' => time()), 'WATCHDOG_INFO');
       variable_set('ting_smart_search_last_cron_auto', time());
     }
@@ -526,8 +526,7 @@ function ting_smart_search_get_autodata_path() {
 /**
  * Gets a file with data automatic smart search from master server
  */
-function ting_smart_search_get_autodata_from_master($url) {
-  $path = ting_smart_search_get_autodata_path();
+function ting_smart_search_get_data_file($url, $path) {
   $directory = dirname($path);
 
   try {
@@ -544,8 +543,10 @@ function ting_smart_search_get_autodata_from_master($url) {
 
     file_put_contents($path, $data);
   } catch (Exception $e) {
-    watchdog('ting_smart_search', 'Fetching auto smart search data failed: ' . $e->getMessage());
+    watchdog('ting_smart_search', 'Fetching smart search data failed: ' . $e->getMessage());
+    return FALSE;
   }
+  return TRUE;
 }
 
 
@@ -555,66 +556,22 @@ function ting_smart_search_get_autodata_from_master($url) {
 function ting_smart_search_get_searchdata_from_webtrekk() {
   $search_data = array();
   $path = file_default_scheme() . '://' . variable_get('ting_smart_search_autodata_path', 'smartsearchdata') . DIRECTORY_SEPARATOR . 'searchfeed.csv';
-  $url = variable_get('ting_smart_search_webtrekk_server_feed', 'http://www.kpiindex.com/index2/search_feed.csv');
-  ting_smart_search_get_search_feed_file($url, $path);  
-
-  $file = fopen($path, 'r');
-  while (($line = fgetcsv($file, 1000, ",")) !== FALSE) {
-    $search_key = $line[2];
-    $number_of_searches = $line[3];
-    if (!((strpos($search_key, '=') !== false) || (strpos($search_key, '(') !== false))) {
-      if (ting_smart_search_is_from_period($line, 13)) {
-        //Using a whole year creates memory problems so we only use the last 3 months
-        if (array_key_exists($search_key, $search_data) && is_numeric($number_of_searches)) {
-          $search_data[$search_key]['long_period'] += $number_of_searches;
-        } else {
-          $search_data[$search_key] = array('long_period' => $number_of_searches, 'short_period' => 0);
-        }
-        if (ting_smart_search_is_from_period($line, 4)) {
-          $search_data[$search_key]['short_period'] += $number_of_searches;
-        }
-      }
-    }
-  }
-
-  uasort($search_data, 'ting_smart_search_sort_search_data');
-  $search_data = array_slice($search_data, 0, variable_get('ting_smart_search_search_feed_updates', 1000)); 
-  
-  ting_smart_search_search_stats_importer($search_data);
-}
-
-/**
- * Gets a file with data automatic smart search from master server
- */
-function ting_smart_search_get_search_feed_file($url, $path) {
+  $url = variable_get('ting_smart_search_webtrekk_server_feed', 'http://127.0.0.1/data/smartsearch/searchdata.csv'); //Todo our data server
+  ting_smart_search_get_data_file($url, $path);
   try {
-    ting_smart_search_copyfile_chunked($url, $path);
-  } catch (Exception $e) {
-    watchdog('ting_smart_search', 'Fetching smart search data feed failed: ' . $e->getMessage());
-  }
-}
-
-function ting_smart_search_is_from_period($line, $lookback_period = 4) {
-  $date = new DateTime();
-  $year = $date->format("Y");
-  $week = $date->format("W");
-  $search_year = $line[0];
-  $search_week = $line[1];
-  if ($search_year == $year && $week - $lookback_period <= $search_week) {
-    return true;
-  } else if (($search_year == $year - 1) && $week <= $lookback_period) {
-    if ($search_week >= (52 - $lookback_period + $week)) {
-      return true;
+    $search_data = array();
+    $file = fopen($path, 'r');
+    while (($line = fgetcsv($file, 1000, ",")) !== FALSE) {
+      $title = $line[0];
+      $long_period = $line[1];
+      $short_period = $line[2];
+      $search_data[$title] = array('long_period' => $long_period, 'short_period' => $short_period);
     }
+  } catch (Exception $e) {
+    watchdog('ting_smart_search', 'Parsing of data failed: ' . $e->getMessage());
   }
-  return false;
-}
-
-function ting_smart_search_sort_search_data($a, $b) {
-  if ($a['long_period'] == $b['long_period']) {
-    return 0;
-  }
-  return ($a['long_period'] < $b['long_period']) ? 1 : -1;
+  file_put_contents("/var/www/drupal7vm/drupal/debug/feed14.txt", print_r($search_data , TRUE), FILE_APPEND);
+  ting_smart_search_search_stats_importer($search_data);
 }
 
 /**
@@ -672,96 +629,4 @@ function ting_smart_search_search_stats_importer($search_data) {
     watchdog('ting_smart_search', 'Importing search feed data to database failed: ' . $e->getMessage());
   }
   file_put_contents("/var/www/drupal7vm/drupal/debug/feed5.txt", print_r("Ending import", TRUE), FILE_APPEND);
-}
-
-/**
- * Copy remote file over HTTP one small chunk at a time. 
- * Taken from ting_subsearch_suggestions module.
- *
- * @param string $infile
- *   The full URL to the remote file
- * @param string $outfile
- *   The path where to save the file
- *
- * @return $cnt
- */
-function ting_smart_search_copyfile_chunked($infile, $outfile) {
-  $chunksize = 10 * (1024 * 1024); // 10 Megs
-
-  /**
-   * parse_url breaks a part a URL into it's parts, i.e. host, path,
-   * query string, etc.
-   */
-  $parts = parse_url($infile);
-  $i_handle = fsockopen($parts['host'], 80, $errstr, $errcode, 5);
-  $o_handle = fopen($outfile, 'wb');
-
-  if ($i_handle == FALSE || $o_handle == FALSE) {
-    return FALSE;
-  }
-
-  if (!empty($parts['query'])) {
-    $parts['path'] .= '?' . $parts['query'];
-  }
-
-  /**
-   * Send the request to the server for the file
-   */
-  $request = "GET {$parts['path']} HTTP/1.1\r\n";
-  $request .= "Host: {$parts['host']}\r\n";
-  $request .= "User-Agent: Mozilla/5.0\r\n";
-  $request .= "Keep-Alive: 115\r\n";
-  $request .= "Connection: keep-alive\r\n\r\n";
-  fwrite($i_handle, $request);
-
-  /**
-   * Now read the headers from the remote server. We'll need
-   * to get the content length.
-   */
-  $headers = [];
-  while (!feof($i_handle)) {
-    $line = fgets($i_handle);
-    if ($line == "\r\n") {
-      break;
-    }
-    $headers[] = $line;
-  }
-
-  /**
-   * Look for the Content-Length header, and get the size
-   * of the remote file.
-   */
-  $length = 0;
-  foreach ($headers as $header) {
-    if (stripos($header, 'Content-Length:') === 0) {
-      $length = (int) str_replace('Content-Length: ', '', $header);
-      break;
-    }
-  }
-
-  /**
-   * Start reading in the remote file, and writing it to the
-   * local file one chunk at a time.
-   */
-  $cnt = 0;
-  while (!feof($i_handle)) {
-    $buf = '';
-    $buf = fread($i_handle, $chunksize);
-    $bytes = fwrite($o_handle, $buf);
-    if ($bytes == FALSE) {
-      return FALSE;
-    }
-    $cnt += $bytes;
-
-    /**
-     * We're done reading when we've reached the content length
-     */
-    if ($cnt >= $length) {
-      break;
-    }
-  }
-
-  fclose($i_handle);
-  fclose($o_handle);
-  return $cnt;
 }
