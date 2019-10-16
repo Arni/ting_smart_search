@@ -36,7 +36,7 @@ function ting_smart_search_ctools_plugin_api($module, $api) {
 function ting_smart_search_cron() {
   watchdog('Smart Search', 'imported autodata time', array(), 'WATCHDOG_ERROR');
   $last_run_auto = variable_get('ting_smart_search_last_cron_auto', 0);
-  $interval_auto = variable_get('ting_smart_search_interval_auto', 600); //To 24 hours
+  $interval_auto = variable_get('ting_smart_search_interval_auto', 86400); 
   if (time() - $last_run_auto > $interval_auto) {
     $autodata_server = variable_get('ting_smart_search_master_server', 'https://staging.randersbib.dk/data/autodata.txt'); //To do our server 
     if (isset($autodata_server)) {
@@ -47,7 +47,7 @@ function ting_smart_search_cron() {
   }
   
   $last_run_feed = variable_get('ting_smart_search_last_cron_feed', 0);
-  $interval_feed = variable_get('ting_smart_search_interval_feed', 600); //Todo 1 week
+  $interval_feed = variable_get('ting_smart_search_interval_feed', 604800); 
   if (time() - $last_run_feed > $interval_feed) {
     ting_smart_search_get_searchdata_from_webtrekk();
     watchdog('Smart Search', 'imported search data: %time', array('%time' => time()), 'WATCHDOG_INFO');
