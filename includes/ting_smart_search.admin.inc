@@ -39,23 +39,10 @@ function ting_smart_search_admin_form($form, &$form_state) {
     '#description' => t('Fetch data for popular terms'),
   );
 
-  $form['import_automatic_data']['ting_smart_search_webtrekk_server_auto'] = array(
-    '#title' => t('Webtrekk server for automatic smart search'),
-    '#type' => 'textfield',
-    '#default_value' => variable_get('ting_smart_search_webtrekk_server_auto', ''),
-    '#required' => FALSE,
-    '#states' => array(
-      // Only show this field when the field: import from remote server is NOT checked.
-      'visible' => array(
-          ':input[name="ting_smart_search_automatic_active"]' => array('checked' => TRUE)),
-    ),
-    '#description' => t('The path to webtrekk data'),
-  );
-
   $form['import_automatic_data']['ting_smart_search_master_server'] = array(
     '#title' => t('Master server for automatic smart search'),
     '#type' => 'textfield',
-    '#default_value' => variable_get('ting_smart_search_master_server', 'https://randersbib.dk/'),
+    '#default_value' => variable_get('ting_smart_search_master_server', 'https://staging.randersbib.dk/data/autodata.txt'),
     '#required' => FALSE,
     '#states' => array(
       // Only show this field when the field: import from remote server is NOT checked.
@@ -75,7 +62,7 @@ function ting_smart_search_admin_form($form, &$form_state) {
   $form['import_webtrekk_stats']['ting_smart_search_webtrekk_server_feed'] = array(
     '#title' => t('Webtrekk statistics feed'),
     '#type' => 'textfield',
-    '#default_value' => variable_get('ting_smart_search_webtrekk_server_feed', 'http://www.kpiindex.com/index2/search_feed.csv'),
+    '#default_value' => variable_get('ting_smart_search_webtrekk_server_feed', 'https://staging.randersbib.dk/data/searchdata.csv'),
     '#required' => FALSE,
     '#description' => t('The path to the webtrekk feed, fetches stats on popular search terms'),
   );

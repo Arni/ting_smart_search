@@ -28,7 +28,6 @@ try {
   }
   uasort($search_data, 'ting_smart_search_sort_search_data');
   $search_data = array_slice($search_data, 0, 5000); 
-  //file_put_contents("/var/www/drupal7vm/drupal/debug/feed12.txt", print_r($search_data , TRUE), FILE_APPEND);
   $fp = fopen('searchdata.csv', 'w');
 
   foreach ($search_data as $search_key => $data) {
