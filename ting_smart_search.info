@@ -9,3 +9,5 @@ dependencies[] = ting
 dependencies[] = search
 dependencies[] = smart_search_string
 dependencies[] = field_collection
+dependencies[] = opensearch
+dependencies[] = paragraphs
