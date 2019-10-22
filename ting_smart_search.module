@@ -207,7 +207,7 @@ function ting_smart_search_autodata_cache() {
   if (file_exists(ting_smart_search_get_autodata_path())) {
     @include ting_smart_search_get_autodata_path();
   }
-  return isset($ting_smart_search_autodata) ? $ting_smart_search_autodata : false;
+  return isset($ting_smart_search_autodata) ? $ting_smart_search_autodata : NULL;
 }
 
 /**
