@@ -11,3 +11,5 @@ dependencies[] = smart_search_string
 dependencies[] = field_collection
 dependencies[] = opensearch
 dependencies[] = paragraphs
+stylesheets[all][] = css/smart_search_content.css
+stylesheets[all][] = css/smart_search_string_form.css

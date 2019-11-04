@@ -38,14 +38,11 @@ function ting_smart_search_cron() {
   $last_run_auto = variable_get('ting_smart_search_last_cron_auto', 0);
   $interval_auto = variable_get('ting_smart_search_interval_auto', 86400); 
   if (time() - $last_run_auto > $interval_auto) {
-    $autodata_server = variable_get('ting_smart_search_master_server', 'https://staging.randersbib.dk/data/autodata.txt'); //To do our server 
-    if (isset($autodata_server)) {
-      ting_smart_search_get_data_file($autodata_server, ting_smart_search_get_autodata_path());
-      watchdog('Smart Search', 'imported autodata: %time', array('%time' => time()), 'WATCHDOG_INFO');
-      variable_set('ting_smart_search_last_cron_auto', time());
-    }
+    ting_smart_search_get_autodata_from_webtrekk();
+    watchdog('Smart Search', 'imported autodata: %time', array('%time' => time()), 'WATCHDOG_INFO');
+    variable_set('ting_smart_search_last_cron_auto', time());
   }
-  
+
   $last_run_feed = variable_get('ting_smart_search_last_cron_feed', 0);
   $interval_feed = variable_get('ting_smart_search_interval_feed', 604800); 
   if (time() - $last_run_feed > $interval_feed) {
@@ -309,15 +306,6 @@ function ting_smart_search_menu() {
       'file' => 'includes/ting_smart_search.admin.inc',
   );
 
-  $items['admin/config/ding/ting_smart_search_soaptest'] = array(
-      'title' => 'Ting smart soap test',
-      'description' => 'Test smart search soap connection',
-      'page callback' => 'ting_smart_search_soap_page',
-      'page arguments' => array(),
-      'access arguments' => array('configure smart search'),
-      'file' => 'includes/ting_smart_search_soap.inc',
-  );
-
   $items['smartstring/%'] = array(
       'title' => 'Smart search string',
       'page callback' => 'ting_smart_search_view_sss',
@@ -325,11 +313,11 @@ function ting_smart_search_menu() {
       'access arguments' => array('configure smart search'),
   );
 
-  //Testing
+  //Testing To remove test
 
   $items['autoparse'] = array(
       'title' => 'auto',
-      'page callback' => 'ting_smart_search_get_searchdata_from_webtrekk',
+      'page callback' => 'ting_smart_search_get_autodata_from_webtrekk',
       'page arguments' => array(),
       'access arguments' => array(),
   );
@@ -426,7 +414,6 @@ function ting_smart_search_form_alter(&$form, &$form_state, $form_id) {
 
     // form callback functions
     $form['#pre_render'][] = 'smart_search_string_form_pre_render';
-    $form['#after_build'][] = 'smart_search_string_form_after_build';
     $form['#submit'][] = 'smart_search_string_form_submit';
   }
 
@@ -450,18 +437,6 @@ function smart_search_string_form_pre_render($form) {
   return $form;
 }
 
-/**
- * After build callback to smartstring add/edit form
- * use   $form['#after_build'][] ='smart_search_string_form_after_build'; in form
- * Add CSS to the form.
- */
-function smart_search_string_form_after_build($form, &$form_state) {
-  $path = drupal_get_path('module', 'ting_smart_search');
-  drupal_add_css($path . '/css/smart_search_string_form.css');
-
-  return $form;
-}
-
 function smart_search_string_form_submit($form, &$form_state) {
   // Return for to current search path
   $form_state['redirect'] = current_path();
@@ -480,14 +455,11 @@ function ting_smart_search_sort_form_submit($form, &$form_state) {
 }
 
 function smart_search_string_views_pre_render(&$view) {
-
   if ($view->name == 'smart_search_content') {
-
     foreach ($view->result as $r => $result) {
       
     }
   }
-
   // other views might go here
 }
 
@@ -550,6 +522,32 @@ function ting_smart_search_get_data_file($url, $path) {
   return TRUE;
 }
 
+function ting_smart_search_get_autodata_from_webtrekk() {
+  $url = variable_get('ting_smart_search_master_server', 'https://staging.randersbib.dk/data/autodata.txt');
+  $path = ting_smart_search_get_autodata_path();
+  try {
+    print 'starting';
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+    $data = curl_exec($ch);
+    curl_close($ch);
+    if (isset($data)) {
+      $output = unserialize($data);
+    }
+    if (isset($output) && !empty($output) && is_array($output)) {
+      $val = var_export($output, TRUE);
+      file_put_contents($path, '<?php $ting_smart_search_autodata = ' . $val . ';');
+    } else {
+      return FALSE;
+    }
+    print 'done';
+    //LOCK_EX was used in the original solution doesn't work, maybe a windows issue
+  } catch (Exception $e) {
+    watchdog('ting_smart_search', 'Fetching smart search data failed: ' . $e->getMessage());
+    return FALSE;
+  }
+  return TRUE;
+}
 
 /**
  * Gets a file with data automatic smart search from webtrekk

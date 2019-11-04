@@ -11,6 +11,7 @@ $file_month = 'autodatamonth.csv';
 $output_file = 'autodata.txt';
 
 try {
+  $output = array();
   $file = fopen($file_year, 'r');
   $data = array();
   while (($line = fgetcsv($file, 1000, ";")) !== FALSE) {
@@ -45,9 +46,8 @@ try {
       $output[$search] = array_slice($objects, 0, 5);
     }
   }
-  $val = var_export($output, true);
-  file_put_contents($output_file, '<?php $ting_smart_search_autodata = ' . $val . ';'); 
-  //LOCK_EX was used in the original solution doesn't work, maybe a windows issue
+  $serialized_output = serialize($output);
+  file_put_contents($output_file, $serialized_output);
 
   ting_smart_search_write_to_log("Data succesfully updated");
 } catch (Exception $e) {
