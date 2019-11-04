@@ -36,7 +36,7 @@ function ting_smart_search_ctools_plugin_api($module, $api) {
 function ting_smart_search_cron() {
   watchdog('Smart Search', 'imported autodata time', array(), 'WATCHDOG_ERROR');
   $last_run_auto = variable_get('ting_smart_search_last_cron_auto', 0);
-  $interval_auto = variable_get('ting_smart_search_interval_auto', 86400); 
+  $interval_auto = variable_get('ting_smart_search_interval_auto', 10); 
   if (time() - $last_run_auto > $interval_auto) {
     ting_smart_search_get_autodata_from_webtrekk();
     watchdog('Smart Search', 'imported autodata: %time', array('%time' => time()), 'WATCHDOG_INFO');
@@ -168,7 +168,7 @@ function ting_smart_search_opensearch_pre_execute($request) {
           }
         }
       }
-      if (!$smart_search_check_object_boosts && variable_get('ting_smart_search_use_auto', true)) {
+      if (!$smart_search_check_object_boosts && variable_get('ting_smart_search_automatic_active', true)) {
         $request->userDefinedBoost = ting_smart_search_auto($smart_search_userdefined_boosts, $request->fullTextQuery); //Todo add support for fulltextquery in opensearch module
       }
 
