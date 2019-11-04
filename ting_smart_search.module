@@ -312,16 +312,6 @@ function ting_smart_search_menu() {
       'page arguments' => array(1),
       'access arguments' => array('configure smart search'),
   );
-
-  //Testing To remove test
-
-  $items['autoparse'] = array(
-      'title' => 'auto',
-      'page callback' => 'ting_smart_search_get_autodata_from_webtrekk',
-      'page arguments' => array(),
-      'access arguments' => array(),
-  );
-
   return $items;
 }
 
