@@ -130,38 +130,6 @@ function ting_smart_search_admin_form($form, &$form_state) {
   return system_settings_form($form);
 }
 
-/**
- * A form for executing python script compilestats.py to calculate and prepare
- * a file for importing hitscores for search terms
- */
-function ting_smart_search_compilestats_form($form, &$form_state) {
-  $form = array();
-
-  $form['submit'] = array(
-    '#value' => t('Compile statfiles'),
-    '#type' => 'submit',
-  );
-
-  return $form;
-}
-
-function ting_smart_search_compilestats_form_submit($form, &$form_state) {
-  drupal_set_message('Kapow!');
-  drupal_set_message($_SERVER["SCRIPT_FILENAME"]);
-  $command = escapeshellcmd('python /var/www/drupal7vm/drupal/web/'.drupal_get_path('module', 'ting_smart_search').'/extras/compilestats.py');
-  $return_value = shell_exec($command);
-  drupal_set_message($command);
-  drupal_set_message($return_value);
-}
-
-function ting_smart_search_compileplacings_form_submit($form, &$form_state) {
-  drupal_set_message('Placings being compiled');
-  drupal_set_message($_SERVER["SCRIPT_FILENAME"]);
-  $command = escapeshellcmd('python /var/www/drupal7vm/drupal/web/'.drupal_get_path('module', 'ting_smart_search').'/extras/compilestats_placing.py');
-  $return_value = shell_exec($command);
-  drupal_set_message($command);
-  drupal_set_message($return_value);
-}
 
 function ting_smart_search_export_form_submit($form, &$form_state) {
   drupal_set_message('Export executed!');
@@ -388,8 +356,3 @@ dpm($import_entity);
   variable_set('smart_search_import_timestamp', time());
 }
 
-function objectToArray ($object) {
-    if(!is_object($object) && !is_array($object)) return $object;
-
-    return array_map('objectToArray', (array) $object);
-}
