@@ -156,7 +156,6 @@ function smart_search_string_views_default_views() {
     'field_sss_sort' => 'field_sss_sort',
     'field_sss_hits_per_year' => 'field_sss_hits_per_year',
     'field_sss_hits_per_month' => 'field_sss_hits_per_month',
-    'field_sss_hits_score' => 'field_sss_hits_score',
     'created' => 'created',
     'changed' => 'changed',
     'field_status' => 'field_status',
@@ -223,13 +222,6 @@ function smart_search_string_views_default_views() {
     'field_sss_hits_per_month' => array(
       'sortable' => 1,
       'default_sort_order' => 'desc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'field_sss_hits_score' => array(
-      'sortable' => 1,
-      'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
       'empty_column' => 0,
@@ -361,16 +353,6 @@ function smart_search_string_views_default_views() {
     'thousand_separator' => '',
     'prefix_suffix' => 1,
   );
-  /* Felt: ting_type: SøgeScore */
-  $handler->display->display_options['fields']['field_sss_hits_score']['id'] = 'field_sss_hits_score';
-  $handler->display->display_options['fields']['field_sss_hits_score']['table'] = 'field_data_field_sss_hits_score';
-  $handler->display->display_options['fields']['field_sss_hits_score']['field'] = 'field_sss_hits_score';
-  $handler->display->display_options['fields']['field_sss_hits_score']['settings'] = array(
-    'thousand_separator' => '',
-    'decimal_separator' => '.',
-    'scale' => '2',
-    'prefix_suffix' => 1,
-  );
   /* Felt: Ting_type: Created */
   $handler->display->display_options['fields']['created']['id'] = 'created';
   $handler->display->display_options['fields']['created']['table'] = 'eck_ting_type';
@@ -483,7 +465,6 @@ function smart_search_string_views_default_views() {
     t('Sortering'),
     t('Hits - år'),
     t('Hits - 30 dage'),
-    t('SøgeScore'),
     t('Oprettet'),
     t('Ændret'),
     t('Status'),

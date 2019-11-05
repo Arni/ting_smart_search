@@ -91,12 +91,11 @@ function ting_smart_search_opensearch_pre_execute($request) {
       $smart_search_check_sort = '';
       $smart_search_check_boosts = array();
       $smart_search_check_object_boosts = false;
+      $smart_search_use_auto = true;
 
       // store the userDefinedBoost if any
       $smart_search_userdefined_boosts = $request->userDefinedBoost;
       if (substr($request->getQuery(), 0, 1) === "(") {
-        //$smart_search_check_replaced = ting_smart_search_check_replaced($request->getQuery());
-        // $smart_search_check_replaced() - now obsolete
         // Load the entity as object with entity_metadata_wrapper
         $smart_search_object = ting_smart_search_check_object($request->getQuery());
         if (!empty((array) $smart_search_object)) {
@@ -162,14 +161,16 @@ function ting_smart_search_opensearch_pre_execute($request) {
                 );
               }
               $request->userDefinedBoost = $uboosts;
+              $smart_search_use_auto = false;
             }
             $request->queryDebug = 'true';
             $request->setQuery($query);
           }
         }
       }
-      if (!$smart_search_check_object_boosts && variable_get('ting_smart_search_automatic_active', true)) {
-        $request->userDefinedBoost = ting_smart_search_auto($smart_search_userdefined_boosts, $request->fullTextQuery); //Todo add support for fulltextquery in opensearch module
+      
+      if ($smart_search_use_auto && variable_get('ting_smart_search_automatic_active', true)) {
+        $request->userDefinedBoost = ting_smart_search_auto($smart_search_userdefined_boosts, $request->fullTextQuery); 
       }
 
       break;
@@ -353,7 +354,6 @@ function ting_smart_search_form_alter(&$form, &$form_state, $form_id) {
     $form['redirect']['#access'] = FALSE;
     $form['field_sss_hits_per_month']['und']['0']['value']['#attributes']['disabled'] = TRUE;
     $form['field_sss_hits_per_year']['und']['0']['value']['#attributes']['disabled'] = TRUE;
-    $form['field_sss_hits_score']['und']['0']['value']['#attributes']['disabled'] = TRUE;
 
     // Make the form element collapsed when smart search string not found
     if ($form['form_id']['#value'] == 'eck__entity__form_edit_ting_type_smart_search_string') {

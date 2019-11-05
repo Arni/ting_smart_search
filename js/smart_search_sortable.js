@@ -7,7 +7,6 @@
       $('#field-sss-boost-materials-values .form-item.form-type-textfield input.form-text').each(function(index){
           material_arr[index] = $(this).val();
       });
-console.log(material_arr);
       $( ".ting_search-results" ).sortable({
         revert: true,
         scroll: true,
@@ -36,11 +35,9 @@ console.log(material_arr);
           $('.ting_search-results .list-item').each(function(n,v){
             $('input#edit-field-sss-boost-materials-und-'+n+'-value').val(material_arr[n]);
           });
-          console.log(material_arr);
         },
         stop: function(event, ui) {
           var sortedIDs = $(this).sortable( "toArray", {attribute: 'class'} );
-          console.log(sortedIDs);
         }
 
       });
