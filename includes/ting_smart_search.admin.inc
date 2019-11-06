@@ -123,7 +123,6 @@ function ting_smart_search_export_form_submit($form, &$form_state) {
 
   $ssquery->entityCondition('entity_type', 'ting_type')
     ->entityCondition('bundle', 'smart_search_string');
-//    ->range(0,5);
 
   $result = $ssquery->execute();
 
@@ -150,7 +149,6 @@ function ting_smart_search_export_form_submit($form, &$form_state) {
 
     $data = json_encode($data);
     $exportfile = file_unmanaged_save_data($data, $destination);
-    dpm($exportfile);
     $expf_arr = explode('/', $exportfile);
     $exportfile = '/sites/default/files/'.array_pop($expf_arr);
     $form_state['redirect'] = $exportfile;
@@ -191,7 +189,7 @@ function ting_smart_search_import_form_submit($form, &$form_state) {
   drupal_set_message(t('The form has been submitted and the smart search records have been saved, filename: @filename.', array(
     '@filename' => $file->filename,
   )));
-  dpm($file->uri);
+
   // prepare vars for import
   $import_entity = array();
 
@@ -216,10 +214,10 @@ function ting_smart_search_import_form_submit($form, &$form_state) {
         // something something ...
       }
   }
-dpm($import_entity);
+
   foreach ($import_entity as $ssrecord) {
     if (array_key_exists('id', $ssrecord)) {
-      dpm($ssrecord);
+
       $field_alternate_search_string = '';
       $field_sss_boost_materials = '';
       $field_custom_boost_values = array();
@@ -244,7 +242,6 @@ dpm($import_entity);
               drupal_set_message('Key fields are missing from array '.$ssrecord['id'].' Check the file and try again');
       } else {
 
-        drupal_set_message($title.' found.');
         // find the matching entity and assign the values from import
         $ssquery = new EntityFieldQuery();
 
@@ -258,7 +255,7 @@ dpm($import_entity);
           $string_items_nids = array_keys($result['ting_type']);
           $raw_item = entity_load('ting_type', array($string_items_nids[0]));
           $string_item = entity_metadata_wrapper('ting_type', $string_items_nids[0]);
-          dpm($string_item->field_sss_import_update->value());
+
           if ($string_item->field_sss_import_update->value() == 'open') {
             //update alternate search string from import
             $string_item->field_alternate_search_string->set($field_alternate_search_string);
@@ -367,4 +364,3 @@ dpm($import_entity);
   // set new import timestamp
   variable_set('smart_search_import_timestamp', time());
 }
-
