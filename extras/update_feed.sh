@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# A script to download the webtrekk data files from kpiindex and parse them. 
+# A script to download the webtrekk search data files from kpiindex and parse them. 
 # This is handled with a command line cron job because of the size of the files.
 #
 

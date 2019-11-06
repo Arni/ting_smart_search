@@ -1,7 +1,7 @@
 <?php
 
 /*
- * A script to parse the raw autodata files.
+ * A script to parse the raw search files from Webtrekk via KPI index.
  * 
  * 
  */

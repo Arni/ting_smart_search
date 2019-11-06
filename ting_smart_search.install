@@ -12,5 +12,6 @@
   * @see hook_install()
   */
  function ting_smart_search_install() {
-   //TODO tada
+   // Load the initial data from webtrekk.
+   ting_smart_search_get_autodata_from_webtrekk();
 }
