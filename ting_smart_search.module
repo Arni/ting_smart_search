@@ -518,11 +518,19 @@ function ting_smart_search_get_autodata_from_webtrekk() {
       $output = unserialize($data);
     }
     if (isset($output) && !empty($output) && is_array($output)) {
+      $directory = dirname($path);
+      if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
+        watchdog('ting_smart_search', 'Failed to create directory: %directory', array('%directory' => $directory), WATCHDOG_ERROR);
+        return FALSE;
+      }
+
       $val = var_export($output, TRUE);
       // In order to get maximum performance the data is exported into a php
       // array which will be cached by opcode cache. This is based on the method 
       // described here: https://medium.com/@dylanwenzlau/
       // 500x-faster-caching-than-redis-memcache-apc-in-php-hhvm-dcd26e8447ad
+      // Build the destination folder tree if it doesn't already exist.    
+
       file_put_contents($path, '<?php $ting_smart_search_autodata = ' . $val . ';');
     } else {
       return FALSE;
