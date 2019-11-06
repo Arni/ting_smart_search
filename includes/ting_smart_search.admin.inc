@@ -86,45 +86,28 @@ function ting_smart_search_admin_form($form, &$form_state) {
     '#type' => 'fieldset',
     '#title' => t('Export Smart Search Records'),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-  $form['export_smartsearch']['ting_smart_search_export_file_name'] = array(
-    '#title' => t('Export file name'),
-    '#type' => 'textfield',
-    '#default_value' => variable_get('ting_smart_search_export_file_name', '/sites/default/files/export/smart-search-records.csv'),
-    '#required' => TRUE,
-    '#description' => t('File will by default be located in /sites/default/files/export/ - you can change the path in this field'),
+    '#collapsed' => FALSE,
   );
   $form['export_smartsearch']['submit_export'] = array(
-    '#value' => t('Export to json file'),
+    '#value' => t('Export Smart Search records'),
     '#type' => 'submit',
     '#submit' => array('ting_smart_search_export_form_submit'),
   );
   $form['import_smartsearch'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Import Smart Search Records'),
+    '#title' => t('Import Smart Search records'),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
+    '#collapsed' => FALSE,
   );
-  $form['import_smartsearch']['ting_smart_search_import_status'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Import Smart Search Records from remote server'),
+  $form['import_smartsearch']['ting_smart_search_import_file'] = array (
+      '#title'         => t('Upload Smart Search Records'),
+      '#type'          => 'file',
   );
-  $form['import_smartsearch']['ting_smart_search_import_file_name'] = array(
-    '#title' => t('Import local file name'),
-    '#type' => 'textfield',
-    '#default_value' => variable_get('ting_smart_search_import_file_name', '/sites/default/files/export/smart-search-records.csv'),
-    '#required' => TRUE,
-    '#states' => array(
-      // Only show this field when the field: import from remote server is NOT checked.
-      'visible' => array(
-          ':input[name="ting_smart_search_import_status"]' => array('checked' => FALSE)),
-    ),
-    '#description' => t('File will be imported from this path - default path is /sites/default/files/export/'),
-  );
+
   $form['import_smartsearch']['submit_import'] = array(
-    '#value' => t('Import json file'),
+    '#value' => t('Import smart search records'),
     '#type' => 'submit',
+    '#validate' => array('ting_smart_search_import_form_validate'),
     '#submit' => array('ting_smart_search_import_form_submit'),
   );
   return system_settings_form($form);
@@ -166,59 +149,88 @@ function ting_smart_search_compileplacings_form_submit($form, &$form_state) {
 function ting_smart_search_export_form_submit($form, &$form_state) {
   drupal_set_message('Export executed!');
 
-  $destination = DRUPAL_ROOT.variable_get('ting_smart_search_export_file_name', 'smart-search-records.csv');
-  $title = 'krimi';
+  $destination = DRUPAL_ROOT.'/sites/default/files/smart-search-records-'.variable_get('site_name', "Default site name").'-'.date('d-m-Y-H-i').'.csv';
+
   $ssquery = new EntityFieldQuery();
 
   $ssquery->entityCondition('entity_type', 'ting_type')
-    ->entityCondition('bundle', 'smart_search_string')
-    //->propertyCondition('title', $title, '=')
-    ->range(0,10);
+    ->entityCondition('bundle', 'smart_search_string');
+//    ->range(0,5);
 
   $result = $ssquery->execute();
 
   if (isset($result['ting_type'])) {
     $string_items_nids = array_keys($result['ting_type']);
 
-    $data = entity_load('ting_type', $string_items_nids);//, array('nid' => $string_items_nids[0]);
-
+    $data = entity_load('ting_type', $string_items_nids);
 
     foreach ($string_items_nids as $string_item_nid) {
-      $item_boostvalues = $data[$string_item_nid]->field_custom_boost_values;
-      if (!empty($item_boostvalues)) {
-        foreach ($item_boostvalues['und'] as $key => $field_collection_id) {
-          $fce_fields = array();
-          $field_collection_entity = entity_load('field_collection_item', $field_collection_id);
-          $fce_fields = array(
-            'field_field_boost_value' => $field_collection_entity[$field_collection_id['value']]->field_field_boost_value,
-            'field_field_boost_weight' => $field_collection_entity[$field_collection_id['value']]->field_field_boost_weight,
-            'field_field_name' => $field_collection_entity[$field_collection_id['value']]->field_field_name,
-          );
-          $data[$string_item_nid]->field_custom_boost_values['und'][$key] = $fce_fields;
+        $item_boostvalues = $data[$string_item_nid]->field_custom_boost_values;
+        if (!empty($item_boostvalues)) {
+          foreach ($item_boostvalues['und'] as $key => $field_collection_id) {
+            $fce_fields = array();
+            $field_collection_entity = entity_load('field_collection_item', $field_collection_id);
+            $fce_fields = array(
+              'field_field_boost_value' => $field_collection_entity[$field_collection_id['value']]->field_field_boost_value,
+              'field_field_boost_weight' => $field_collection_entity[$field_collection_id['value']]->field_field_boost_weight,
+              'field_field_name' => $field_collection_entity[$field_collection_id['value']]->field_field_name,
+            );
+            $data[$string_item_nid]->field_custom_boost_values['und'][$key] = $fce_fields;
+          }
         }
       }
-    }
 
     $data = json_encode($data);
-    file_unmanaged_save_data($data, $destination);
+    $exportfile = file_unmanaged_save_data($data, $destination);
+    dpm($exportfile);
+    $expf_arr = explode('/', $exportfile);
+    $exportfile = '/sites/default/files/'.array_pop($expf_arr);
+    $form_state['redirect'] = $exportfile;
+  }
+}
+
+function ting_smart_search_import_form_validate($form, &$form_state) {
+  $file = file_save_upload('ting_smart_search_import_file', array('file_validate_extensions' => array('csv'),
+  ));
+  if ($file) {
+    if ($file = file_move($file, 'public://')) {
+
+      $form_state['values']['ting_smart_search_import_file'] = $file;
+    }
+    else {
+      form_set_error('ting_smart_search_import_file', t('Failed to write the uploaded file the site\'s file folder.'));
+    }
+  }
+  else {
+    form_set_error('ting_smart_search_import_file', t('No file was uploaded.'));
   }
 }
 
 function ting_smart_search_import_form_submit($form, &$form_state) {
+  // Store new file.
+  $file = $form_state['values']['ting_smart_search_import_file'];
 
+  // We are done with the file, remove it from storage.
+  unset($form_state['values']['ting_smart_search_import_file']);
+
+  // Make the storage of the file permanent.
+  $file->status = FILE_STATUS_PERMANENT;
+
+  // Save file status.
+  file_save($file);
+
+  // Set a response to the user.
+  drupal_set_message(t('The form has been submitted and the smart search records have been saved, filename: @filename.', array(
+    '@filename' => $file->filename,
+  )));
+  dpm($file->uri);
   // prepare vars for import
   $import_entity = array();
 
-  if ($form['import_smartsearch']['ting_smart_search_import_status']['#value']) {
-      $json = @file_get_contents('https://randersbib.dk/sites/default/files/smart-search-records-export.csv');
-       if ($json === FALSE) {
-         drupal_set_message('Failed to load file from remote location', 'warning');
-       }
-  } else {
-    $json = @file_get_contents(DRUPAL_ROOT.variable_get('ting_smart_search_import_file_name', 'smart-search-records.csv'));
-    if ($json === FALSE) {
-      drupal_set_message('Failed to load local file. Please check that filename and path are correct: '.variable_get('ting_smart_search_import_file_name', 'smart-search-records.csv'), 'warning');
-    }
+  $json = @file_get_contents($file->uri);
+  //$json = @file_get_contents(DRUPAL_ROOT.variable_get('ting_smart_search_import_file_name', 'smart-search-records.csv'));
+  if ($json === FALSE) {
+    drupal_set_message('Failed to load local file. Please check that filename and path are correct: '.variable_get('ting_smart_search_import_file_name', 'smart-search-records.csv'), 'warning');
   }
 
   $json_array = json_decode($json, true);
