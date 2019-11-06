@@ -13,9 +13,7 @@
  */
 function ting_smart_search_admin_page() {
   $output = '';
-
   $output = drupal_get_form('ting_smart_search_admin_form');
-
   return $output;
 }
 
@@ -45,11 +43,10 @@ function ting_smart_search_admin_form($form, &$form_state) {
     '#default_value' => variable_get('ting_smart_search_master_server', 'https://staging.randersbib.dk/data/autodata.txt'),
     '#required' => FALSE,
     '#states' => array(
-      // Only show this field when the field: import from remote server is NOT checked.
       'visible' => array(
           ':input[name="ting_smart_search_automatic_active"]' => array('checked' => TRUE)),
     ),
-    '#description' => t('The path to master server data - active if field for Webtrekk automatic server is empty.'),
+    '#description' => t('The path to auto data file.'),
   );
 
   $form['import_webtrekk_stats'] = array(
@@ -64,7 +61,7 @@ function ting_smart_search_admin_form($form, &$form_state) {
     '#type' => 'textfield',
     '#default_value' => variable_get('ting_smart_search_webtrekk_server_feed', 'https://staging.randersbib.dk/data/searchdata.csv'),
     '#required' => FALSE,
-    '#description' => t('The path to the webtrekk feed, fetches stats on popular search terms'),
+    '#description' => t('The path to search data files, fetches stats on popular search terms'),
   );
 
   $form['well_index_settings'] = array(
@@ -115,8 +112,6 @@ function ting_smart_search_admin_form($form, &$form_state) {
 
 
 function ting_smart_search_export_form_submit($form, &$form_state) {
-  drupal_set_message('Export executed!');
-
   $destination = DRUPAL_ROOT.'/sites/default/files/smart-search-records-'.variable_get('site_name', "Default site name").'-'.date('d-m-Y-H-i').'.csv';
 
   $ssquery = new EntityFieldQuery();
@@ -194,7 +189,7 @@ function ting_smart_search_import_form_submit($form, &$form_state) {
   $import_entity = array();
 
   $json = @file_get_contents($file->uri);
-  //$json = @file_get_contents(DRUPAL_ROOT.variable_get('ting_smart_search_import_file_name', 'smart-search-records.csv'));
+
   if ($json === FALSE) {
     drupal_set_message('Failed to load local file. Please check that filename and path are correct: '.variable_get('ting_smart_search_import_file_name', 'smart-search-records.csv'), 'warning');
   }
@@ -210,9 +205,7 @@ function ting_smart_search_import_form_submit($form, &$form_state) {
   foreach ($jsonIterator as $key => $val) {
       if(is_array($val)) {
           $import_entity[$key] = $val;
-      } else {
-        // something something ...
-      }
+      } 
   }
 
   foreach ($import_entity as $ssrecord) {
@@ -355,6 +348,4 @@ function ting_smart_search_import_form_submit($form, &$form_state) {
       }
     }
   }
-  // set new import timestamp
-  variable_set('smart_search_import_timestamp', time());
 }

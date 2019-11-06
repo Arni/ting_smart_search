@@ -14,7 +14,6 @@ try {
     $number_of_searches = $line[3];
     if (!((strpos($search_key, '=') !== false) || (strpos($search_key, '(') !== false))) {
       if (ting_smart_search_is_from_period($line, 52)) {
-        //Using a whole year creates memory problems so we only use the last 3 months
         if (array_key_exists($search_key, $search_data) && is_numeric($number_of_searches)) {
           $search_data[$search_key]['long_period'] += $number_of_searches;
         } else {

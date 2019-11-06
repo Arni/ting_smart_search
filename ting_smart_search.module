@@ -19,13 +19,6 @@ function ting_smart_search_menu() {
       'access arguments' => array('configure smart search'),
       'file' => 'includes/ting_smart_search.admin.inc',
   );
-
-  $items['smartstring/%'] = array(
-      'title' => 'Smart search string',
-      'page callback' => 'ting_smart_search_view_sss',
-      'page arguments' => array(1),
-      'access arguments' => array('configure smart search'),
-  );
   return $items;
 }
 
@@ -72,7 +65,7 @@ function ting_smart_search_ctools_plugin_api($module, $api) {
 function ting_smart_search_cron() {
   watchdog('Smart Search', 'imported autodata time', array(), 'WATCHDOG_ERROR');
   $last_run_auto = variable_get('ting_smart_search_last_cron_auto', 0);
-  $interval_auto = variable_get('ting_smart_search_interval_auto', 10); 
+  $interval_auto = variable_get('ting_smart_search_interval_auto', 86400); 
   if (time() - $last_run_auto > $interval_auto) {
     ting_smart_search_get_autodata_from_webtrekk();
     watchdog('Smart Search', 'imported autodata: %time', array('%time' => time()), 'WATCHDOG_INFO');
@@ -117,8 +110,6 @@ function ting_smart_search_opensearch_pre_execute($request) {
 
 // Alter the request based on the profile settings and request class.
   switch (get_class($request)) {
-    //case 'TingClientObjectRequest':
-    //case 'TingClientCollectionRequest':
     case 'TingClientSearchRequest':
       // Always use the search well profile on search requests if set.
       // Otherwise this profile wants to use the default from ting module.
@@ -161,15 +152,15 @@ function ting_smart_search_opensearch_pre_execute($request) {
             // Check for sorting
             $smart_search_request_sort = $request->getSort();
             $params = $_POST;
-            $param_sort = NULL; //drupal_get_query_parameters();
+            $param_sort = NULL; 
 
             if ($smart_search_request_sort == 'rank_frequency') {
 
               if (array_key_exists('sort', $params)) {
-                // Do nothing here
+                // Do nothing here.
               } else {
                 // Override sort when no sort has been specified
-                //ting_smart_search_check_sort() - now obsolete
+                //ting_smart_search_check_sort() - now obsolete.
                 $smart_search_check_sort = $smart_search_object->field_sss_sort->value();
 
                 if (!empty($smart_search_check_sort)) {
@@ -182,7 +173,7 @@ function ting_smart_search_opensearch_pre_execute($request) {
 
             if ($smart_search_check_replaced == '') {
               $query = $request->getQuery();
-              //Probably nothing here
+              //Probably nothing here.
             } else {
               $query = $smart_search_check_replaced;
             }
@@ -241,7 +232,7 @@ function ting_smart_search_auto($smart_search_userdefined_boosts, $keys) {
       );
       $weight = $weight - 1000;
       $i += 1;
-      if ($i > 4) {
+      if ($i > 5) {
         break;
       }
     }
@@ -251,7 +242,6 @@ function ting_smart_search_auto($smart_search_userdefined_boosts, $keys) {
 
 /**
  * Gets a array off searches from webtrekk data.
- *
  *
  * @return array
  *   Array containing the searches as key with a array off most requested 
@@ -367,7 +357,6 @@ function ting_smart_search_load_multiple($ids = array(), $conditions = array(), 
 }
 
 function ting_smart_search_form_alter(&$form, &$form_state, $form_id) {
-
   // Check when the right form is passed
   if ($form_id == 'eck__entity__form_edit_ting_type_smart_search_string' || $form_id == 'eck__entity__form_add_ting_type_smart_search_string') {
 
@@ -547,6 +536,30 @@ function ting_smart_search_get_autodata_from_webtrekk() {
 }
 
 /**
+ * Gets a file with data about the most popular searches from webtrekk. Used in
+ * the overview off searches.
+ */
+function ting_smart_search_get_searchdata_from_webtrekk() {
+  $search_data = array();
+  $path = file_default_scheme() . '://' . variable_get('ting_smart_search_autodata_path', 'smartsearchdata') . DIRECTORY_SEPARATOR . 'searchfeed.csv';
+  $url = variable_get('ting_smart_search_webtrekk_server_feed', 'https://staging.randersbib.dk/data/searchdata.csv'); 
+  ting_smart_search_get_data_file($url, $path);
+  try {
+    $search_data = array();
+    $file = fopen($path, 'r');
+    while (($line = fgetcsv($file, 1000, ",")) !== FALSE) {
+      $title = $line[0];
+      $long_period = $line[1];
+      $short_period = $line[2];
+      $search_data[$title] = array('long_period' => $long_period, 'short_period' => $short_period);
+    }
+  } catch (Exception $e) {
+    watchdog('ting_smart_search', 'Parsing of data failed: ' . $e->getMessage());
+  }
+  ting_smart_search_search_stats_importer($search_data);
+}
+
+/**
  * Gets a file with data automatic smart search from master server
  */
 function ting_smart_search_get_data_file($url, $path) {
@@ -572,29 +585,7 @@ function ting_smart_search_get_data_file($url, $path) {
   return TRUE;
 }
 
-/**
- * Gets a file with data about the most popular searches from webtrekk. Used in
- * the overview off searches.
- */
-function ting_smart_search_get_searchdata_from_webtrekk() {
-  $search_data = array();
-  $path = file_default_scheme() . '://' . variable_get('ting_smart_search_autodata_path', 'smartsearchdata') . DIRECTORY_SEPARATOR . 'searchfeed.csv';
-  $url = variable_get('ting_smart_search_webtrekk_server_feed', 'https://staging.randersbib.dk/data/searchdata.csv'); 
-  ting_smart_search_get_data_file($url, $path);
-  try {
-    $search_data = array();
-    $file = fopen($path, 'r');
-    while (($line = fgetcsv($file, 1000, ",")) !== FALSE) {
-      $title = $line[0];
-      $long_period = $line[1];
-      $short_period = $line[2];
-      $search_data[$title] = array('long_period' => $long_period, 'short_period' => $short_period);
-    }
-  } catch (Exception $e) {
-    watchdog('ting_smart_search', 'Parsing of data failed: ' . $e->getMessage());
-  }
-  ting_smart_search_search_stats_importer($search_data);
-}
+
 
 /**
  * Import data about popular searches in to database.
