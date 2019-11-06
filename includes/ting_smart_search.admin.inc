@@ -297,15 +297,10 @@ function ting_smart_search_import_form_submit($form, &$form_state) {
             // save
             $string_item->save(true);
 
-            drupal_set_message('Title: '.$title.' has been updated.');
-          } else {
-
-            drupal_set_message('Smart search string found, but locked; no update performed.');
           }
 
         } else {
 
-              drupal_set_message('No smart string found - creating new smart string');
               // create a new node and assign the data
               $values = array(
                      'type' => 'smart_search_string',
@@ -356,7 +351,6 @@ function ting_smart_search_import_form_submit($form, &$form_state) {
               // save
               $string_item->save(true);
 
-              drupal_set_message('Title: '.$title.' has been created.');
         }
       }
     }
