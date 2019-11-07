@@ -110,7 +110,9 @@ function ting_smart_search_admin_form($form, &$form_state) {
   return system_settings_form($form);
 }
 
-
+/**
+ * Implements submit callback
+ */
 function ting_smart_search_export_form_submit($form, &$form_state) {
   $destination = DRUPAL_ROOT.'/sites/default/files/smart-search-records-'.variable_get('site_name', "Default site name").'-'.date('d-m-Y-H-i').'.csv';
 
@@ -150,6 +152,9 @@ function ting_smart_search_export_form_submit($form, &$form_state) {
   }
 }
 
+/**
+ * Implements validate callback
+ */
 function ting_smart_search_import_form_validate($form, &$form_state) {
   $file = file_save_upload('ting_smart_search_import_file', array('file_validate_extensions' => array('csv'),
   ));
@@ -167,6 +172,9 @@ function ting_smart_search_import_form_validate($form, &$form_state) {
   }
 }
 
+/**
+ * Implements submit callback
+ */
 function ting_smart_search_import_form_submit($form, &$form_state) {
   // Store new file.
   $file = $form_state['values']['ting_smart_search_import_file'];
@@ -205,7 +213,7 @@ function ting_smart_search_import_form_submit($form, &$form_state) {
   foreach ($jsonIterator as $key => $val) {
       if(is_array($val)) {
           $import_entity[$key] = $val;
-      } 
+      }
   }
 
   foreach ($import_entity as $ssrecord) {
